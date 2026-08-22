@@ -25,7 +25,10 @@ import {
   Undo2,
   Check,
   RotateCcw,
-  Truck
+  Truck,
+  Upload,
+  Image as ImageIcon,
+  Loader2
 } from "lucide-react";
 
 import { Product } from "../types";
@@ -109,6 +112,90 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
   // Track product stock level (stored in localStorage)
   const [inventory, setInventory] = useState<Record<string, number>>({});
+
+  // Cloudinary configuration & upload state
+  const [cloudinaryCloudName, setCloudinaryCloudName] = useState(() => localStorage.getItem("cloudinary_cloud_name") || "xgkuinaj");
+  const [cloudinaryPreset, setCloudinaryPreset] = useState(() => localStorage.getItem("cloudinary_preset") || "ml_default");
+  const [cloudinaryApiKey, setCloudinaryApiKey] = useState(() => localStorage.getItem("cloudinary_api_key") || "818789479113189");
+  const [cloudinaryApiSecret, setCloudinaryApiSecret] = useState(() => localStorage.getItem("cloudinary_api_secret") || "rrwnAeWxvgd-xEhhhO5txQsY9bg");
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadError, setUploadError] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem("cloudinary_cloud_name", cloudinaryCloudName);
+    localStorage.setItem("cloudinary_preset", cloudinaryPreset);
+    localStorage.setItem("cloudinary_api_key", cloudinaryApiKey);
+    localStorage.setItem("cloudinary_api_secret", cloudinaryApiSecret);
+  }, [cloudinaryCloudName, cloudinaryPreset, cloudinaryApiKey, cloudinaryApiSecret]);
+
+  const sha1 = async (string: string) => {
+    const utf8 = new TextEncoder().encode(string);
+    const hashBuffer = await crypto.subtle.digest('SHA-1', utf8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  const handleCloudinaryUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadState("uploading");
+    setUploadError("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // If API Key and API Secret are provided, we do a signed upload.
+    // Otherwise, we do an unsigned upload.
+    if (cloudinaryApiKey && cloudinaryApiSecret) {
+      const timestamp = Math.round(new Date().getTime() / 1000).toString();
+      formData.append("timestamp", timestamp);
+      formData.append("api_key", cloudinaryApiKey);
+      
+      let stringToSign = "";
+      if (cloudinaryPreset) {
+        formData.append("upload_preset", cloudinaryPreset);
+        stringToSign = `timestamp=${timestamp}&upload_preset=${cloudinaryPreset}${cloudinaryApiSecret}`;
+      } else {
+        stringToSign = `timestamp=${timestamp}${cloudinaryApiSecret}`;
+      }
+      const signature = await sha1(stringToSign);
+      formData.append("signature", signature);
+    } else {
+      if (cloudinaryPreset) {
+        formData.append("upload_preset", cloudinaryPreset);
+      }
+    }
+
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error?.message || "Upload failed");
+      }
+
+      const data = await res.json();
+      if (data.secure_url) {
+        if (isEdit && editingProduct) {
+          setEditingProduct({ ...editingProduct, imageUrl: data.secure_url });
+        } else {
+          setNewProduct({ ...newProduct, imageUrl: data.secure_url, gallery: [data.secure_url] });
+        }
+        setUploadState("success");
+        setTimeout(() => setUploadState("idle"), 2000);
+      } else {
+        throw new Error("Invalid response format received");
+      }
+    } catch (error: any) {
+      console.error("Cloudinary upload error:", error);
+      setUploadState("error");
+      setUploadError(error.message || "Failed to upload. Double-check your Cloud Name, API Key, and API Secret.");
+    }
+  };
 
   // Initialize and load everything from localStorage on mount
   useEffect(() => {
@@ -825,15 +912,113 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-1.5">
-                        <span className="font-bold text-gray-700">Image Cover URL</span>
-                        <input
-                          type="text"
-                          required
-                          value={newProduct.imageUrl}
-                          onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value, gallery: [e.target.value] })}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2"
-                        />
+                      <div className="flex flex-col gap-2.5 bg-gray-50 p-4 rounded-2xl border border-gray-150">
+                        <span className="font-black text-gray-800 uppercase tracking-wider text-[10px]">Product Main Visual Representation</span>
+                        
+                        {/* Preview and Selector */}
+                        <div className="flex gap-4 items-center">
+                          <div className="w-16 h-16 rounded-xl border border-gray-250 bg-white overflow-hidden shrink-0 flex items-center justify-center relative shadow-inner">
+                            {newProduct.imageUrl ? (
+                              <img src={newProduct.imageUrl} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            ) : (
+                              <ImageIcon className="w-6 h-6 text-gray-300" />
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 flex flex-col gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500">Upload direct from device or paste web link</span>
+                            <div className="relative">
+                              <input
+                                type="file"
+                                id="new-product-file"
+                                accept="image/*"
+                                onChange={(e) => handleCloudinaryUpload(e, false)}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="new-product-file"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-250 hover:border-emerald-500 rounded-xl text-[10px] font-black text-gray-700 cursor-pointer transition-colors shadow-sm"
+                              >
+                                {uploadState === "uploading" ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
+                                    <span>Uploading to Cloudinary...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Choose Image File</span>
+                                  </>
+                                )}
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {uploadError && (
+                          <p className="text-[10px] font-bold text-rose-600 mt-1">{uploadError}</p>
+                        )}
+
+                        <div className="flex flex-col gap-1 mt-1">
+                          <span className="font-bold text-gray-500 text-[10px]">Or Paste Image URL Address</span>
+                          <input
+                            type="text"
+                            required
+                            placeholder="https://images.unsplash.com/..."
+                            value={newProduct.imageUrl || ""}
+                            onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value, gallery: [e.target.value] })}
+                            className="w-full px-3 py-2 bg-white border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2"
+                          />
+                        </div>
+
+                        {/* Optional Credentials Setting */}
+                        <div className="border-t border-gray-200 mt-2 pt-2 flex flex-col gap-2">
+                          <details className="cursor-pointer group">
+                            <summary className="text-[10px] font-black text-gray-400 group-hover:text-gray-600 uppercase tracking-widest list-none flex items-center gap-1.5">
+                              ⚙️ Cloudinary Credentials Configuration
+                            </summary>
+                            <div className="grid grid-cols-2 gap-2 mt-2 p-2 bg-white border border-gray-150 rounded-xl">
+                              <div className="flex flex-col gap-1">
+                                <span className="font-bold text-gray-500 text-[9px]">Cloud Name</span>
+                                <input
+                                  type="text"
+                                  value={cloudinaryCloudName}
+                                  onChange={(e) => setCloudinaryCloudName(e.target.value)}
+                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="font-bold text-gray-500 text-[9px]">Upload Preset</span>
+                                <input
+                                  type="text"
+                                  value={cloudinaryPreset}
+                                  onChange={(e) => setCloudinaryPreset(e.target.value)}
+                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="font-bold text-gray-500 text-[9px]">API Key (Signed)</span>
+                                <input
+                                  type="text"
+                                  placeholder="API Key..."
+                                  value={cloudinaryApiKey}
+                                  onChange={(e) => setCloudinaryApiKey(e.target.value)}
+                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="font-bold text-gray-500 text-[9px]">API Secret (Signed)</span>
+                                <input
+                                  type="password"
+                                  placeholder="API Secret..."
+                                  value={cloudinaryApiSecret}
+                                  onChange={(e) => setCloudinaryApiSecret(e.target.value)}
+                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
+                                />
+                              </div>
+                            </div>
+                          </details>
+                        </div>
                       </div>
 
                       <div className="flex flex-col gap-1.5">
@@ -917,15 +1102,113 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-1.5">
-                        <span className="font-bold text-gray-700">Image Cover URL</span>
-                        <input
-                          type="text"
-                          required
-                          value={editingProduct.imageUrl}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold"
-                        />
+                      <div className="flex flex-col gap-2.5 bg-gray-50 p-4 rounded-2xl border border-gray-150">
+                        <span className="font-black text-gray-800 uppercase tracking-wider text-[10px]">Product Main Visual Representation</span>
+                        
+                        {/* Preview and Selector */}
+                        <div className="flex gap-4 items-center">
+                          <div className="w-16 h-16 rounded-xl border border-gray-250 bg-white overflow-hidden shrink-0 flex items-center justify-center relative shadow-inner">
+                            {editingProduct.imageUrl ? (
+                              <img src={editingProduct.imageUrl} alt="preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            ) : (
+                              <ImageIcon className="w-6 h-6 text-gray-300" />
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 flex flex-col gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500">Upload direct from device or paste web link</span>
+                            <div className="relative">
+                              <input
+                                type="file"
+                                id="edit-product-file"
+                                accept="image/*"
+                                onChange={(e) => handleCloudinaryUpload(e, true)}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="edit-product-file"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-250 hover:border-emerald-500 rounded-xl text-[10px] font-black text-gray-700 cursor-pointer transition-colors shadow-sm"
+                              >
+                                {uploadState === "uploading" ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
+                                    <span>Uploading to Cloudinary...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Choose Image File</span>
+                                  </>
+                                )}
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {uploadError && (
+                          <p className="text-[10px] font-bold text-rose-600 mt-1">{uploadError}</p>
+                        )}
+
+                        <div className="flex flex-col gap-1 mt-1">
+                          <span className="font-bold text-gray-500 text-[10px]">Or Paste Image URL Address</span>
+                          <input
+                            type="text"
+                            required
+                            placeholder="https://images.unsplash.com/..."
+                            value={editingProduct.imageUrl || ""}
+                            onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
+                            className="w-full px-3 py-2 bg-white border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2"
+                          />
+                        </div>
+
+                        {/* Optional Credentials Setting */}
+                        <div className="border-t border-gray-200 mt-2 pt-2 flex flex-col gap-2">
+                          <details className="cursor-pointer group">
+                            <summary className="text-[10px] font-black text-gray-400 group-hover:text-gray-600 uppercase tracking-widest list-none flex items-center gap-1.5">
+                              ⚙️ Cloudinary Credentials Configuration
+                            </summary>
+                            <div className="grid grid-cols-2 gap-2 mt-2 p-2 bg-white border border-gray-150 rounded-xl">
+                              <div className="flex flex-col gap-1">
+                                <span className="font-bold text-gray-500 text-[9px]">Cloud Name</span>
+                                <input
+                                  type="text"
+                                  value={cloudinaryCloudName}
+                                  onChange={(e) => setCloudinaryCloudName(e.target.value)}
+                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="font-bold text-gray-500 text-[9px]">Upload Preset</span>
+                                <input
+                                  type="text"
+                                  value={cloudinaryPreset}
+                                  onChange={(e) => setCloudinaryPreset(e.target.value)}
+                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="font-bold text-gray-500 text-[9px]">API Key (Signed)</span>
+                                <input
+                                  type="text"
+                                  placeholder="API Key..."
+                                  value={cloudinaryApiKey}
+                                  onChange={(e) => setCloudinaryApiKey(e.target.value)}
+                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <span className="font-bold text-gray-500 text-[9px]">API Secret (Signed)</span>
+                                <input
+                                  type="password"
+                                  placeholder="API Secret..."
+                                  value={cloudinaryApiSecret}
+                                  onChange={(e) => setCloudinaryApiSecret(e.target.value)}
+                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
+                                />
+                              </div>
+                            </div>
+                          </details>
+                        </div>
                       </div>
 
                       <div className="flex flex-col gap-1.5">

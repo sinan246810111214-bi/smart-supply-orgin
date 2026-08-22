@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Phone,
   Mail,
@@ -16,7 +16,10 @@ import {
   MapPin,
   Sparkles,
   PhoneCall,
-  Settings
+  Settings,
+  Lock,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 import { PRODUCTS, REVIEWS } from "./data";
@@ -37,6 +40,10 @@ export default function App() {
   });
 
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [activeProduct, setActiveProduct] = useState<Product>(() => {
     const saved = localStorage.getItem("smart_supply_products");
@@ -206,10 +213,99 @@ export default function App() {
     return `https://wa.me/919946597203?text=${text}`;
   };
 
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === "ss2468") {
+      setIsAdminAuthenticated(true);
+      setPasswordError("");
+    } else {
+      setPasswordError("Incorrect Admin Password. Access Denied.");
+    }
+  };
+
   if (isAdminMode) {
+    if (!isAdminAuthenticated) {
+      return (
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 select-none font-sans">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-8">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="bg-emerald-50 text-emerald-600 p-4 rounded-2xl shadow-inner">
+                <Lock className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black tracking-tight text-gray-900 uppercase">Logistics Access Gate</h3>
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-1">Authorized personnel only</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAdminLogin} className="mt-8 flex flex-col gap-5">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-wider">Secret Password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="Enter admin password..."
+                    value={passwordInput}
+                    onChange={(e) => {
+                      setPasswordInput(e.target.value);
+                      if (passwordError) setPasswordError("");
+                    }}
+                    className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-gray-900 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {passwordError && (
+                <div className="bg-rose-50 border border-rose-100 p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-rose-800">
+                  <AlertCircle className="w-4.5 h-4.5 text-rose-600 shrink-0 mt-0.5" />
+                  <p className="font-extrabold">{passwordError}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAdminMode(false);
+                    setPasswordInput("");
+                    setPasswordError("");
+                  }}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-black py-3 rounded-xl transition-all cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-black py-3 rounded-xl transition-all shadow-md cursor-pointer text-center"
+                >
+                  Unlock Portal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <AdminPanel
-        onBackToShop={() => setIsAdminMode(false)}
+        onBackToShop={() => {
+          setIsAdminMode(false);
+          setIsAdminAuthenticated(false);
+          setPasswordInput("");
+        }}
         productsList={productsList}
         onProductsUpdate={setProductsList}
       />
