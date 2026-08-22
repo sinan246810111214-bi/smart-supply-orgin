@@ -166,17 +166,17 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
     <div
       ref={formRef}
       id="cod-checkout-container"
-      className="bg-white rounded-3xl border-2 border-emerald-600/20 shadow-2xl overflow-hidden scroll-mt-24"
+      className="bg-white rounded-3xl border-2 border-blue-600/20 shadow-2xl overflow-hidden scroll-mt-24"
     >
       {/* Checkout Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-6 py-6">
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-700 text-white px-6 py-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-            <ShoppingBag className="w-5 h-5 text-emerald-100" />
+            <ShoppingBag className="w-5 h-5 text-blue-100" />
           </div>
           <div>
             <h3 className="font-black text-lg tracking-tight leading-snug">Quick Cash on Delivery Form</h3>
-            <p className="text-[11px] text-emerald-100 font-bold tracking-wide uppercase mt-0.5">
+            <p className="text-[11px] text-blue-100 font-bold tracking-wide uppercase mt-0.5">
               Item Selected: <span className="text-amber-300 font-extrabold">{product.name}</span>
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
                 placeholder="Enter your first & last name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`w-full px-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-gray-900 font-extrabold ${
+                className={`w-full px-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 font-extrabold ${
                   errors.name ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                 }`}
               />
@@ -227,7 +227,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
                   placeholder="10-digit mobile number"
                   value={phone}
                   onChange={(e) => handlePhoneChange(e.target.value)}
-                  className={`w-full pl-[68px] pr-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-black text-gray-950 tracking-wide ${
+                  className={`w-full pl-[68px] pr-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-black text-gray-950 tracking-wide ${
                     errors.phone ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                   }`}
                 />
@@ -251,7 +251,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
                 placeholder="House Name/Number, Ward, Post Office, Nearest Landmark"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className={`w-full px-4 py-3 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-gray-900 font-bold ${
+                className={`w-full px-4 py-3 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 font-bold ${
                   errors.address ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                 }`}
               />
@@ -274,18 +274,18 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
                 placeholder="6-digit pincode"
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
-                className={`w-full px-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-black text-gray-950 tracking-widest ${
+                className={`w-full px-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-black text-gray-950 tracking-widest ${
                   errors.pincode ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                 }`}
               />
               
               {/* Live Delivery Date Estimate indicator */}
               {estDate && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5 animate-fade-in text-xs">
-                  <Truck className="w-4.5 h-4.5 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2.5 animate-fade-in text-xs">
+                  <Truck className="w-4.5 h-4.5 text-blue-600 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-emerald-800 font-black">🟢 COD Available (വീട്ടുപടിക്കൽ പണം നൽകാം!)</p>
-                    <p className="text-emerald-700 text-[11px] mt-0.5">Estimated Delivery Date: <b>{estDate}</b></p>
+                    <p className="text-blue-800 font-black">🟢 COD Available (വീട്ടുപടിക്കൽ പണം നൽകാം!)</p>
+                    <p className="text-blue-700 text-[11px] mt-0.5">Estimated Delivery Date: <b>{estDate}</b></p>
                   </div>
                 </div>
               )}
@@ -319,28 +319,28 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
             <span className="text-gray-800 font-extrabold">₹{product.discountedPrice * quantity}</span>
           </div>
           {discount > 0 && (
-            <div className="flex justify-between text-xs font-bold text-emerald-600">
+            <div className="flex justify-between text-xs font-bold text-blue-600">
               <span>Bundle Promo Savings</span>
               <span>-₹{discount}</span>
             </div>
           )}
           <div className="flex justify-between text-xs text-gray-500 font-bold">
             <span>Shipping & Courier</span>
-            <span className="text-emerald-600 flex items-center gap-1 font-black">
+            <span className="text-blue-600 flex items-center gap-1 font-black">
               <Truck className="w-3.5 h-3.5" /> FREE Delivery
             </span>
           </div>
           <div className="flex justify-between text-xs text-gray-500 font-bold">
             <span>Cash on Delivery Fee</span>
-            <span className="text-emerald-600 font-black">FREE COD</span>
+            <span className="text-blue-600 font-black">FREE COD</span>
           </div>
           <div className="h-[1px] bg-gray-200 my-1" />
           <div className="flex justify-between items-center text-gray-900 font-black">
             <div className="flex flex-col">
               <span className="text-xs text-gray-500 font-black uppercase">Total Bill to Pay</span>
-              <span className="text-[10px] text-emerald-600 font-extrabold">Pay cash or UPI at your doorstep</span>
+              <span className="text-[10px] text-blue-600 font-extrabold">Pay cash or UPI at your doorstep</span>
             </div>
-            <span className="text-2xl text-emerald-600">₹{totalPrice}</span>
+            <span className="text-2xl text-blue-600">₹{totalPrice}</span>
           </div>
         </div>
 
@@ -359,7 +359,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
           className={`w-full py-4.5 px-6 rounded-2xl text-white font-black text-base tracking-wide shadow-xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] cursor-pointer ${
             submitting
               ? "bg-gray-400 shadow-none cursor-not-allowed"
-              : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200 hover:-translate-y-0.5"
+              : "bg-blue-600 hover:bg-blue-700 shadow-blue-200 hover:-translate-y-0.5"
           }`}
         >
           {submitting ? (
@@ -377,7 +377,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
 
         {/* Security / Quality Guarantee badge */}
         <div className="flex items-center justify-center gap-2 text-gray-500 text-[10px] font-bold">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
           <span>🔒 Safe Doorstep COD Checkout • 7 Days Replacement Warranty</span>
         </div>
       </form>

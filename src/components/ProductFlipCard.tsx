@@ -32,14 +32,14 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
         <div
           onClick={onSelect}
           className={`absolute inset-0 w-full h-full bg-white border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between backface-hidden cursor-pointer ${
-            isSelected ? "border-emerald-500 ring-2 ring-emerald-500/10" : "border-gray-150"
+            isSelected ? "border-blue-500 ring-2 ring-blue-500/10" : "border-gray-150"
           }`}
         >
           {/* Top image + tags */}
           <div className="flex flex-col gap-3.5">
             <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
               {/* Floating Badge */}
-              <div className="absolute top-3 left-3 z-10 bg-emerald-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider shadow-md">
+              <div className="absolute top-3 left-3 z-10 bg-blue-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md tracking-wider shadow-md">
                 {product.tag}
               </div>
 
@@ -71,7 +71,7 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
               <h3 className="text-gray-900 font-black text-base tracking-tight leading-snug line-clamp-1">
                 {product.name}
               </h3>
-              <p className="text-emerald-700 text-xs font-bold leading-normal mt-0.5 line-clamp-1">
+              <p className="text-blue-700 text-xs font-bold leading-normal mt-0.5 line-clamp-1">
                 {product.tagline}
               </p>
             </div>
@@ -84,7 +84,7 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
               <div>
                 <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Special COD Price</span>
                 <div className="flex items-baseline gap-2 mt-0.5">
-                  <span className="text-xl font-black text-emerald-600">₹{product.discountedPrice}</span>
+                  <span className="text-xl font-black text-blue-600">₹{product.discountedPrice}</span>
                   <span className="text-gray-400 line-through text-xs font-semibold">₹{product.originalPrice}</span>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
                 }}
                 className={`w-full font-black py-3 px-4 rounded-xl shadow-sm text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   isSelected
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-100"
                     : "bg-gray-900 hover:bg-gray-800 text-white"
                 }`}
               >
@@ -115,9 +115,9 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
                     e.stopPropagation();
                     setIsFlipped(true);
                   }}
-                  className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-extrabold py-2.5 px-3 rounded-xl text-[11px] transition-colors flex items-center justify-center gap-1.5 border border-emerald-100 cursor-pointer"
+                  className="bg-blue-50 hover:bg-blue-100 text-blue-800 font-extrabold py-2.5 px-3 rounded-xl text-[11px] transition-colors flex items-center justify-center gap-1.5 border border-blue-100 cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin-slow text-emerald-600" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin-slow text-blue-600" />
                   <span>View Specs</span>
                 </button>
 
@@ -125,7 +125,7 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
                   href={getWhatsAppOrderUrl(product)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-2.5 px-3 rounded-xl text-[11px] transition-all flex items-center justify-center gap-1"
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-extrabold py-2.5 px-3 rounded-xl text-[11px] transition-all flex items-center justify-center gap-1"
                 >
                   <MessageCircle className="w-3.5 h-3.5 fill-white" />
                   <span>WhatsApp</span>
@@ -138,7 +138,7 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
         {/* BACK SIDE */}
         <div
           className={`absolute inset-0 w-full h-full bg-white border rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between backface-hidden rotate-y-180 ${
-            isSelected ? "border-emerald-500 ring-2 ring-emerald-500/10" : "border-gray-150"
+            isSelected ? "border-blue-500 ring-2 ring-blue-500/10" : "border-gray-150"
           }`}
         >
           {/* Back title & Features */}
@@ -146,7 +146,7 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
             <div className="flex items-center justify-between border-b border-gray-100 pb-2">
               <div>
                 <h4 className="text-gray-900 font-black text-sm tracking-tight">Key Features</h4>
-                <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Premium Problem Solver</p>
+                <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Premium Problem Solver</p>
               </div>
               <button
                 onClick={(e) => {
@@ -163,7 +163,7 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
             <ul className="flex flex-col gap-2 text-[11px]">
               {product.features.map((feat, idx) => (
                 <li key={idx} className="flex items-start gap-1.5 leading-tight font-medium text-gray-700">
-                  <div className="w-4 h-4 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-4 h-4 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="w-2.5 h-2.5 stroke-[3.5px]" />
                   </div>
                   <span>{feat}</span>
@@ -191,7 +191,7 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
                 e.stopPropagation();
                 onSelect();
               }}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-100 cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-blue-100 cursor-pointer"
             >
               <span>⚡ ORDER NOW</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[3px]" />

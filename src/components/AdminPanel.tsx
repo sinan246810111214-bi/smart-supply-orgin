@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { jsPDF } from "jspdf";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -37,7 +38,8 @@ import { Product } from "../types";
 const FROM_ADDRESS = {
   name: "Muhammed Muksith v",
   address: "vazhengal H, palliyal thodi, near amlp school west mappattukara, kulukkallur po",
-  pincode: "679337"
+  pincode: "679337",
+  phone: "+919539364862"
 };
 
 interface Order {
@@ -85,6 +87,10 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
   const [orderFilterStatus, setOrderFilterStatus] = useState<string>("all");
   const [customerSearch, setCustomerSearch] = useState("");
   const [inventorySearch, setInventorySearch] = useState("");
+
+  // Deletion confirmation states to avoid blocking window.confirm in iframe
+  const [deleteConfirmProductId, setDeleteConfirmProductId] = useState<string | null>(null);
+  const [deleteConfirmOrderId, setDeleteConfirmOrderId] = useState<string | null>(null);
 
   // Modals and form states
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -435,15 +441,13 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
   };
 
   const handleDeleteProduct = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      const updated = productsList.filter((p) => p.id !== id);
-      onProductsUpdate(updated);
+    const updated = productsList.filter((p) => p.id !== id);
+    onProductsUpdate(updated);
 
-      // Remove from inventory state
-      const updatedInv = { ...inventory };
-      delete updatedInv[id];
-      saveInventory(updatedInv);
-    }
+    // Remove from inventory state
+    const updatedInv = { ...inventory };
+    delete updatedInv[id];
+    saveInventory(updatedInv);
   };
 
   // 2. ORDER CRUD
@@ -453,11 +457,9 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
   };
 
   const handleDeleteOrder = (orderId: string) => {
-    if (window.confirm("Are you sure you want to delete this order?")) {
-      const updated = orders.filter((o) => o.id !== orderId);
-      saveOrders(updated);
-      setSelectedOrderIds(selectedOrderIds.filter((id) => id !== orderId));
-    }
+    const updated = orders.filter((o) => o.id !== orderId);
+    saveOrders(updated);
+    setSelectedOrderIds(selectedOrderIds.filter((id) => id !== orderId));
   };
 
   const handleEditOrderSubmit = (e: React.FormEvent) => {
@@ -546,6 +548,144 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
     window.print();
   };
 
+  // Modern Client-Side Vector PDF Generator using jsPDF (works inside sandboxed iframes)
+  const generateLabelsPDF = () => {
+    const selected = orders.filter((o) => selectedOrderIds.includes(o.id));
+    if (selected.length === 0) return;
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const cardWidth = 90;
+    const cardHeight = 82;
+    const marginLeft = 10;
+    const marginTop = 12;
+    const gapX = 10;
+    const gapY = 10;
+
+    selected.forEach((ord, index) => {
+      if (index > 0 && index % 6 === 0) {
+        doc.addPage();
+      }
+
+      const pageIndex = index % 6;
+      const col = pageIndex % 2;
+      const row = Math.floor(pageIndex / 2);
+
+      const x = marginLeft + col * (cardWidth + gapX);
+      const y = marginTop + row * (cardHeight + gapY);
+
+      // Draw Card outer border with clean solid lines (printer-safe)
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.4);
+      doc.rect(x, y, cardWidth, cardHeight);
+
+      // ================= SENDER SECTION =================
+      doc.setFillColor(245, 245, 245); // Very light grey header background for high legibility
+      doc.rect(x + 0.5, y + 0.5, cardWidth - 1, 6, "F");
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("SENDER (RETURN)", x + 3, y + 4.8);
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("SMART SUPPLY", x + cardWidth - 26, y + 4.8);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(FROM_ADDRESS.name, x + 3, y + 11);
+
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(40, 40, 40);
+      doc.setFontSize(7.5);
+      
+      const fromAddrLines = doc.splitTextToSize(FROM_ADDRESS.address + " - PIN: " + FROM_ADDRESS.pincode, cardWidth - 6);
+      doc.text(fromAddrLines, x + 3, y + 14.5);
+
+      // Print sender's phone number clearly
+      doc.setFont("helvetica", "bold");
+      doc.text("Phone: " + FROM_ADDRESS.phone, x + 3, y + 21.5);
+
+      // Separator line
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.3);
+      doc.line(x, y + 23.5, x + cardWidth, y + 23.5);
+
+      // ================= RECIPIENT SECTION =================
+      doc.setFillColor(240, 240, 240); // Clean grey background for Recipient Header
+      doc.rect(x + 0.5, y + 23.8, cardWidth - 1, 6, "F");
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("RECIPIENT (DELIVER TO)", x + 3, y + 28);
+
+      // Name - Large and Bold
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(ord.name, x + 3, y + 35);
+
+      // WhatsApp Phone - Highly prominent for delivery executives
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.text("WhatsApp Phone: " + ord.phone, x + 3, y + 40);
+
+      // Delivery Address text - very clear and high-contrast
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8.5);
+      
+      const toAddrLines = doc.splitTextToSize(ord.address, cardWidth - 6);
+      doc.text(toAddrLines, x + 3, y + 45);
+
+      // Large Area Pincode
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.text("PIN CODE: " + ord.pincode, x + 3, y + 59);
+
+      // Separator line
+      doc.line(x, y + 62.5, x + cardWidth, y + 62.5);
+
+      // ================= PRODUCT & COD SECTION =================
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      
+      const prodNameLines = doc.splitTextToSize(ord.productName, cardWidth - 36);
+      doc.text(prodNameLines, x + 3, y + 67.5);
+
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(7.5);
+      doc.text(`Qty: ${ord.quantity}  |  Ref: ${ord.id}`, x + 3, y + 78);
+
+      // Clean Outlined COD Box (no heavy dark solid ink wasting box)
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.4);
+      doc.rect(x + cardWidth - 32, y + 64.5, 29, 14);
+      
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.text("CASH ON DELIVERY", x + cardWidth - 31, y + 68.5);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12.5);
+      doc.text(`Rs. ${ord.totalPrice}`, x + cardWidth - 31, y + 75);
+    });
+
+    doc.save(`Shipping-Labels-${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
   // Dashboard calculations
   const totalSales = orders.filter((o) => o.status !== "Cancelled").reduce((acc, o) => acc + o.totalPrice, 0);
   const totalPendingOrders = orders.filter((o) => o.status === "Pending").length;
@@ -616,7 +756,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
             onClick={() => { setActiveTab("dashboard"); setIsLabelPreviewOpen(false); }}
             className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-xs font-black tracking-wide whitespace-nowrap transition-all cursor-pointer ${
               activeTab === "dashboard"
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
                 : "bg-white hover:bg-gray-100 text-gray-600 border border-gray-150"
             }`}
           >
@@ -628,7 +768,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
             onClick={() => { setActiveTab("products"); setIsLabelPreviewOpen(false); }}
             className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-xs font-black tracking-wide whitespace-nowrap transition-all cursor-pointer ${
               activeTab === "products"
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
                 : "bg-white hover:bg-gray-100 text-gray-600 border border-gray-150"
             }`}
           >
@@ -640,7 +780,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
             onClick={() => { setActiveTab("orders"); setIsLabelPreviewOpen(false); }}
             className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-xs font-black tracking-wide whitespace-nowrap transition-all cursor-pointer ${
               activeTab === "orders"
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
                 : "bg-white hover:bg-gray-100 text-gray-600 border border-gray-150"
             }`}
           >
@@ -652,7 +792,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
             onClick={() => { setActiveTab("customers"); setIsLabelPreviewOpen(false); }}
             className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-xs font-black tracking-wide whitespace-nowrap transition-all cursor-pointer ${
               activeTab === "customers"
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
                 : "bg-white hover:bg-gray-100 text-gray-600 border border-gray-150"
             }`}
           >
@@ -664,7 +804,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
             onClick={() => { setActiveTab("inventory"); setIsLabelPreviewOpen(false); }}
             className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-xs font-black tracking-wide whitespace-nowrap transition-all cursor-pointer ${
               activeTab === "inventory"
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
                 : "bg-white hover:bg-gray-100 text-gray-600 border border-gray-150"
             }`}
           >
@@ -676,7 +816,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
             onClick={() => { setActiveTab("labels"); setIsLabelPreviewOpen(true); }}
             className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-xs font-black tracking-wide whitespace-nowrap transition-all cursor-pointer ${
               activeTab === "labels" || isLabelPreviewOpen
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
                 : "bg-white hover:bg-gray-100 text-gray-600 border border-gray-150"
             }`}
           >
@@ -696,10 +836,10 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                 <p className="text-xs text-gray-500 font-semibold mt-0.5">Real-time status updates and order stats.</p>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                  <div className="bg-emerald-50 border border-emerald-100 p-4.5 rounded-2xl">
-                    <Coins className="w-5 h-5 text-emerald-600 mb-2" />
-                    <p className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Total Sales</p>
-                    <p className="text-xl font-black text-emerald-950 mt-1">₹{totalSales}</p>
+                  <div className="bg-blue-50 border border-blue-100 p-4.5 rounded-2xl">
+                    <Coins className="w-5 h-5 text-blue-600 mb-2" />
+                    <p className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Total Sales</p>
+                    <p className="text-xl font-black text-blue-950 mt-1">₹{totalSales}</p>
                   </div>
                   
                   <div className="bg-amber-50 border border-amber-100 p-4.5 rounded-2xl">
@@ -785,7 +925,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                   </div>
                   <button
                     onClick={() => setIsAddingProduct(true)}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-md shadow-emerald-100 flex items-center gap-1.5 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-md shadow-blue-100 flex items-center gap-1.5 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Create New Product</span>
@@ -801,7 +941,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                     placeholder="Search smart supply products catalog..."
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-bold transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all"
                   />
                 </div>
 
@@ -828,29 +968,50 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                             </div>
                           </td>
                           <td className="p-4 text-gray-500 font-bold line-through">₹{p.originalPrice}</td>
-                          <td className="p-4 text-emerald-600 font-extrabold">₹{p.discountedPrice}</td>
+                          <td className="p-4 text-blue-600 font-extrabold">₹{p.discountedPrice}</td>
                           <td className="p-4">
                             <span className="bg-rose-50 border border-rose-100 text-rose-600 px-2 py-0.5 rounded-full text-[9px] font-black">
                               {p.discountPercent}% OFF
                             </span>
                           </td>
-                          <td className="p-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => setEditingProduct(p)}
-                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg transition-colors cursor-pointer"
-                                title="Edit Product"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteProduct(p.id)}
-                                className="bg-rose-50 hover:bg-rose-100 text-rose-600 p-2 rounded-lg transition-colors cursor-pointer"
-                                title="Delete Product"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                           <td className="p-4 text-right">
+                            {deleteConfirmProductId === p.id ? (
+                              <div className="flex items-center justify-end gap-1.5 animate-fade-in">
+                                <span className="text-[10px] text-rose-600 font-extrabold mr-1">Sure?</span>
+                                <button
+                                  onClick={() => {
+                                    handleDeleteProduct(p.id);
+                                    setDeleteConfirmProductId(null);
+                                  }}
+                                  className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black px-2 py-1 rounded cursor-pointer"
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  onClick={() => setDeleteConfirmProductId(null)}
+                                  className="bg-gray-150 hover:bg-gray-200 text-gray-700 text-[10px] font-black px-2 py-1 rounded cursor-pointer"
+                                >
+                                  No
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => setEditingProduct(p)}
+                                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg transition-colors cursor-pointer"
+                                  title="Edit Product"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteConfirmProductId(p.id)}
+                                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 p-2 rounded-lg transition-colors cursor-pointer"
+                                  title="Delete Product"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -863,12 +1024,12 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
               {isAddingProduct && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in print:hidden">
                   <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden max-h-[85vh] flex flex-col">
-                    <div className="bg-emerald-600 p-5 text-white flex justify-between items-center">
+                    <div className="bg-blue-600 p-5 text-white flex justify-between items-center">
                       <div>
                         <h3 className="font-black text-sm uppercase tracking-wider">Create New Supply Listing</h3>
-                        <p className="text-[11px] text-emerald-100 font-semibold mt-0.5">Fills automatically with smart defaults</p>
+                        <p className="text-[11px] text-blue-100 font-semibold mt-0.5">Fills automatically with smart defaults</p>
                       </div>
-                      <button onClick={() => setIsAddingProduct(false)} className="bg-emerald-700 hover:bg-emerald-800 p-1.5 rounded-lg text-white transition-colors cursor-pointer">
+                      <button onClick={() => setIsAddingProduct(false)} className="bg-blue-700 hover:bg-blue-800 p-1.5 rounded-lg text-white transition-colors cursor-pointer">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
@@ -882,7 +1043,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                           placeholder="e.g. Electric Garlic Chopper"
                           value={newProduct.name}
                           onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                         />
                       </div>
 
@@ -893,7 +1054,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                           placeholder="e.g. Chop Ginger, Chillies and Garlic in 3 Seconds!"
                           value={newProduct.tagline}
                           onChange={(e) => setNewProduct({ ...newProduct, tagline: e.target.value })}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                         />
                       </div>
 
@@ -948,16 +1109,16 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                               />
                               <label
                                 htmlFor="new-product-file"
-                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-250 hover:border-emerald-500 rounded-xl text-[10px] font-black text-gray-700 cursor-pointer transition-colors shadow-sm"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-250 hover:border-blue-500 rounded-xl text-[10px] font-black text-gray-700 cursor-pointer transition-colors shadow-sm"
                               >
                                 {uploadState === "uploading" ? (
                                   <>
-                                    <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
+                                    <Loader2 className="w-3.5 h-3.5 text-blue-600 animate-spin" />
                                     <span>Uploading to Cloudinary...</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Upload className="w-3.5 h-3.5 text-emerald-600" />
+                                    <Upload className="w-3.5 h-3.5 text-blue-600" />
                                     <span>Choose Image File</span>
                                   </>
                                 )}
@@ -995,7 +1156,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
                       <button
                         type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl shadow-lg mt-2 cursor-pointer text-xs"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl shadow-lg mt-2 cursor-pointer text-xs"
                       >
                         Publish Catalog Listing
                       </button>
@@ -1008,12 +1169,12 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
               {editingProduct && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in print:hidden">
                   <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden max-h-[85vh] flex flex-col">
-                    <div className="bg-emerald-600 p-5 text-white flex justify-between items-center">
+                    <div className="bg-blue-600 p-5 text-white flex justify-between items-center">
                       <div>
                         <h3 className="font-black text-sm uppercase tracking-wider">Modify Supply Details</h3>
-                        <p className="text-[11px] text-emerald-100 font-semibold mt-0.5">Product Identifier: {editingProduct.id}</p>
+                        <p className="text-[11px] text-blue-100 font-semibold mt-0.5">Product Identifier: {editingProduct.id}</p>
                       </div>
-                      <button onClick={() => setEditingProduct(null)} className="bg-emerald-700 hover:bg-emerald-800 p-1.5 rounded-lg text-white transition-colors cursor-pointer">
+                      <button onClick={() => setEditingProduct(null)} className="bg-blue-700 hover:bg-blue-800 p-1.5 rounded-lg text-white transition-colors cursor-pointer">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
@@ -1026,7 +1187,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                           required
                           value={editingProduct.name}
                           onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                         />
                       </div>
 
@@ -1089,16 +1250,16 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                               />
                               <label
                                 htmlFor="edit-product-file"
-                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-250 hover:border-emerald-500 rounded-xl text-[10px] font-black text-gray-700 cursor-pointer transition-colors shadow-sm"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-250 hover:border-blue-500 rounded-xl text-[10px] font-black text-gray-700 cursor-pointer transition-colors shadow-sm"
                               >
                                 {uploadState === "uploading" ? (
                                   <>
-                                    <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
+                                    <Loader2 className="w-3.5 h-3.5 text-blue-600 animate-spin" />
                                     <span>Uploading to Cloudinary...</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Upload className="w-3.5 h-3.5 text-emerald-600" />
+                                    <Upload className="w-3.5 h-3.5 text-blue-600" />
                                     <span>Choose Image File</span>
                                   </>
                                 )}
@@ -1136,7 +1297,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
                       <button
                         type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl shadow-lg mt-2 cursor-pointer text-xs"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl shadow-lg mt-2 cursor-pointer text-xs"
                       >
                         Save Catalog Details
                       </button>
@@ -1166,7 +1327,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                       placeholder="Search ledger by order ID, name, phone, city..."
                       value={orderSearch}
                       onChange={(e) => setOrderSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     />
                   </div>
 
@@ -1184,7 +1345,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                 </div>
 
                 {/* Bulk Actions Bar */}
-                <div className="bg-emerald-50 border border-emerald-100 p-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="bg-blue-50 border border-blue-100 p-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -1193,9 +1354,9 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                         filteredOrders.length > 0 &&
                         filteredOrders.every((fo) => selectedOrderIds.includes(fo.id))
                       }
-                      className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                      className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
                     />
-                    <span className="font-extrabold text-emerald-950">
+                    <span className="font-extrabold text-blue-950">
                       {selectedOrderIds.length} orders chosen for label printing
                     </span>
                   </div>
@@ -1203,7 +1364,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                   {selectedOrderIds.length > 0 && (
                     <button
                       onClick={() => { setActiveTab("labels"); setIsLabelPreviewOpen(true); }}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] px-4 py-2 rounded-xl shadow-md shadow-emerald-100 flex items-center gap-1.5 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] px-4 py-2 rounded-xl shadow-md shadow-blue-100 flex items-center gap-1.5 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       <span>Print Selected Labels ({selectedOrderIds.length})</span>
@@ -1239,7 +1400,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                                 type="checkbox"
                                 checked={selectedOrderIds.includes(o.id)}
                                 onChange={() => toggleSelectOrder(o.id)}
-                                className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                                className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
                               />
                             </td>
                             <td className="p-4">
@@ -1255,7 +1416,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                             </td>
                             <td className="p-4">
                               <p className="font-extrabold text-gray-950 text-[11px] truncate max-w-[150px]">{o.productName}</p>
-                              <p className="text-[10px] text-gray-500 mt-0.5">Qty: {o.quantity} • <b className="text-emerald-600">₹{o.totalPrice}</b></p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">Qty: {o.quantity} • <b className="text-blue-600">₹{o.totalPrice}</b></p>
                             </td>
                             <td className="p-4">
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
@@ -1270,33 +1431,54 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                                 {o.status}
                               </span>
                             </td>
-                            <td className="p-4 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                <select
-                                  value={o.status}
-                                  onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as Order["status"])}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-black text-gray-700 outline-none"
-                                >
-                                  <option value="Pending">Pending</option>
-                                  <option value="Shipped">Shipped</option>
-                                  <option value="Delivered">Delivered</option>
-                                  <option value="Cancelled">Cancelled</option>
-                                </select>
-                                <button
-                                  onClick={() => setEditingOrder(o)}
-                                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg transition-colors cursor-pointer"
-                                  title="Edit Order Address"
-                                >
-                                  <Edit3 className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteOrder(o.id)}
-                                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 p-2 rounded-lg transition-colors cursor-pointer"
-                                  title="Delete Order"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
+                             <td className="p-4 text-right">
+                              {deleteConfirmOrderId === o.id ? (
+                                <div className="flex items-center justify-end gap-1.5 animate-fade-in">
+                                  <span className="text-[10px] text-rose-600 font-extrabold mr-1">Sure?</span>
+                                  <button
+                                    onClick={() => {
+                                      handleDeleteOrder(o.id);
+                                      setDeleteConfirmOrderId(null);
+                                    }}
+                                    className="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black px-2 py-1 rounded cursor-pointer"
+                                  >
+                                    Yes
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteConfirmOrderId(null)}
+                                    className="bg-gray-150 hover:bg-gray-200 text-gray-700 text-[10px] font-black px-2 py-1 rounded cursor-pointer"
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <select
+                                    value={o.status}
+                                    onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as Order["status"])}
+                                    className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-black text-gray-700 outline-none"
+                                  >
+                                    <option value="Pending">Pending</option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                  </select>
+                                  <button
+                                    onClick={() => setEditingOrder(o)}
+                                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg transition-colors cursor-pointer"
+                                    title="Edit Order Address"
+                                  >
+                                    <Edit3 className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteConfirmOrderId(o.id)}
+                                    className="bg-rose-50 hover:bg-rose-100 text-rose-600 p-2 rounded-lg transition-colors cursor-pointer"
+                                    title="Delete Order"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              )}
                             </td>
                           </tr>
                         ))
@@ -1309,13 +1491,13 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
               {/* MODAL 3: EDIT ORDER ADDRESS */}
               {editingOrder && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in print:hidden">
-                  <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden text-xs">
-                    <div className="bg-emerald-600 p-5 text-white flex justify-between items-center">
+                  <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-gray-150 overflow-hidden text-xs">
+                    <div className="bg-blue-600 p-5 text-white flex justify-between items-center">
                       <div>
                         <h3 className="font-black uppercase tracking-wider">Correct Customer Shipping Address</h3>
-                        <p className="text-[11px] text-emerald-100 font-semibold mt-0.5">Order ID: {editingOrder.id}</p>
+                        <p className="text-[11px] text-blue-100 font-semibold mt-0.5">Order ID: {editingOrder.id}</p>
                       </div>
-                      <button onClick={() => setEditingOrder(null)} className="bg-emerald-700 hover:bg-emerald-800 p-1.5 rounded-lg text-white cursor-pointer">
+                      <button onClick={() => setEditingOrder(null)} className="bg-blue-700 hover:bg-blue-800 p-1.5 rounded-lg text-white cursor-pointer">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
@@ -1368,7 +1550,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
                       <button
                         type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl mt-2 cursor-pointer"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl mt-2 cursor-pointer"
                       >
                         Update Delivery Address
                       </button>
@@ -1397,7 +1579,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                     placeholder="Search verified customers by name, phone or full location..."
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   />
                 </div>
 
@@ -1428,11 +1610,11 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                             <td className="p-4 text-gray-900 font-bold">📞 {c.phone}</td>
                             <td className="p-4 text-gray-500 font-bold max-w-[200px] truncate">{c.address}, {c.pincode}</td>
                             <td className="p-4 text-center">
-                              <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full text-[10px] font-black">
+                              <span className="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full text-[10px] font-black">
                                 {c.totalOrders} Orders
                               </span>
                             </td>
-                            <td className="p-4 text-emerald-600 font-extrabold">₹{c.totalSpent}</td>
+                            <td className="p-4 text-blue-600 font-extrabold">₹{c.totalSpent}</td>
                             <td className="p-4 text-right">
                               <button
                                 onClick={() => setEditingCustomer(c)}
@@ -1453,13 +1635,13 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
               {/* MODAL 4: EDIT CUSTOMER CRM DETAILS */}
               {editingCustomer && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in print:hidden">
-                  <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-gray-100 overflow-hidden text-xs">
-                    <div className="bg-emerald-600 p-5 text-white flex justify-between items-center">
+                  <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-gray-150 overflow-hidden text-xs">
+                    <div className="bg-blue-600 p-5 text-white flex justify-between items-center">
                       <div>
                         <h3 className="font-black uppercase tracking-wider">Update CRM Profile</h3>
-                        <p className="text-[11px] text-emerald-100 font-semibold mt-0.5">Customer: {editingCustomer.name}</p>
+                        <p className="text-[11px] text-blue-100 font-semibold mt-0.5">Customer: {editingCustomer.name}</p>
                       </div>
-                      <button onClick={() => setEditingCustomer(null)} className="bg-emerald-700 hover:bg-emerald-800 p-1.5 rounded-lg text-white cursor-pointer">
+                      <button onClick={() => setEditingCustomer(null)} className="bg-blue-700 hover:bg-blue-800 p-1.5 rounded-lg text-white cursor-pointer">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
@@ -1511,7 +1693,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
                       <button
                         type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl mt-2 cursor-pointer"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl mt-2 cursor-pointer"
                       >
                         Save Customer Profile
                       </button>
@@ -1566,7 +1748,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                                   ⚠️ LOW STOCK ALERT
                                 </span>
                               ) : (
-                                <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                                <span className="bg-blue-100 text-blue-800 border border-blue-200 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
                                   ✅ IN STOCK & GOOD
                                 </span>
                               )}
@@ -1633,7 +1815,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                       className={`font-black text-xs px-4 py-2.5 rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer ${
                         selectedOrderIds.length === 0
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
-                          : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100"
+                          : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-100"
                       }`}
                     >
                       <Printer className="w-4 h-4" />
@@ -1641,7 +1823,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                     </button>
 
                     <button
-                      onClick={triggerPrint}
+                      onClick={generateLabelsPDF}
                       disabled={selectedOrderIds.length === 0}
                       className={`font-black text-xs px-4 py-2.5 rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer ${
                         selectedOrderIds.length === 0
@@ -1649,7 +1831,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                           : "bg-white hover:bg-gray-50 border-gray-250 text-gray-700"
                       }`}
                     >
-                      <FileText className="w-4 h-4 text-emerald-600" />
+                      <FileText className="w-4 h-4 text-blue-600" />
                       <span>Download PDF</span>
                     </button>
                   </div>
@@ -1675,7 +1857,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                 <div className="mt-5 border-t border-gray-100 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div>
                     <span className="font-black text-gray-900">Currently selected: </span>
-                    <span className="bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-md">
+                    <span className="bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-md">
                       {selectedOrderIds.length} parcels chosen
                     </span>
                   </div>
@@ -1709,37 +1891,39 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                             {pageChunk.map((ord) => (
                               <div
                                 key={ord.id}
-                                className="border-2 border-dashed border-gray-300 hover:border-emerald-400 transition-colors p-3.5 rounded-xl flex flex-col justify-between bg-gray-50/50 text-[10px]"
+                                className="border border-gray-400 hover:border-black transition-colors p-3.5 rounded-xl flex flex-col justify-between bg-white text-[10px] shadow-sm text-gray-950"
                               >
                                 {/* Return From section */}
-                                <div className="border-b border-gray-200 pb-1.5 flex flex-col">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-[9px] bg-gray-200 text-gray-700 font-black tracking-widest px-1.5 py-0.5 rounded">FROM (RETURN)</span>
-                                    <span className="font-extrabold text-[8px] text-gray-400 uppercase">SMART SUPPLY</span>
+                                <div className="border-b border-gray-300 pb-1.5 flex flex-col">
+                                  <div className="flex justify-between items-center bg-gray-50 p-1 rounded">
+                                    <span className="text-[8px] text-gray-900 font-extrabold tracking-wider">FROM (SENDER)</span>
+                                    <span className="font-black text-[8px] text-blue-600">SMART SUPPLY</span>
                                   </div>
-                                  <p className="font-black text-gray-800 text-[10px] mt-1">{FROM_ADDRESS.name}</p>
-                                  <p className="text-gray-500 leading-tight text-[8px] mt-0.5">{FROM_ADDRESS.address}</p>
-                                  <p className="font-black text-gray-800 text-[9px] mt-0.5">PIN: {FROM_ADDRESS.pincode}</p>
+                                  <p className="font-extrabold text-black text-[10px] mt-1">{FROM_ADDRESS.name}</p>
+                                  <p className="text-gray-600 leading-tight text-[8px] mt-0.5">{FROM_ADDRESS.address}</p>
+                                  <p className="font-extrabold text-black text-[9px] mt-0.5">PIN: {FROM_ADDRESS.pincode} | Phone: {FROM_ADDRESS.phone}</p>
                                 </div>
 
                                 {/* Recipient To section */}
-                                <div className="py-2.5 flex-1 flex flex-col justify-center">
-                                  <span className="text-[9px] bg-emerald-600 text-white font-black tracking-widest px-1.5 py-0.5 rounded self-start">TO (DELIVER)</span>
-                                  <p className="font-black text-gray-900 text-xs mt-1.5">{ord.name}</p>
-                                  <p className="text-gray-700 font-extrabold text-[9px] mt-0.5">📞 WhatsApp: {ord.phone}</p>
-                                  <p className="text-gray-600 font-bold leading-snug text-[9px] mt-1 line-clamp-2">{ord.address}</p>
-                                  <p className="font-black text-gray-950 text-[10px] mt-1">📮 PIN Code: {ord.pincode}</p>
+                                <div className="py-2 flex-1 flex flex-col justify-center">
+                                  <div className="bg-gray-100 p-1 rounded self-start mb-1">
+                                    <span className="text-[8px] text-black font-extrabold tracking-wider">TO (DELIVER)</span>
+                                  </div>
+                                  <p className="font-black text-black text-xs">{ord.name}</p>
+                                  <p className="text-black font-black text-[10px] mt-0.5">📞 WhatsApp: {ord.phone}</p>
+                                  <p className="text-gray-800 font-extrabold leading-snug text-[9.5px] mt-0.5 line-clamp-2">{ord.address}</p>
+                                  <p className="font-black text-black text-[10.5px] mt-1 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200 inline-block self-start">📮 PIN Code: {ord.pincode}</p>
                                 </div>
 
                                 {/* Footer details */}
-                                <div className="border-t border-gray-200 pt-1.5 flex justify-between items-center">
+                                <div className="border-t border-gray-300 pt-1.5 flex justify-between items-center">
                                   <div>
-                                    <p className="font-black text-gray-800 text-[8px]">ITEM: {ord.productName.slice(0, 18)}...</p>
-                                    <p className="text-[7px] text-gray-400 mt-0.5">Qty: {ord.quantity} • ID: {ord.id}</p>
+                                    <p className="font-extrabold text-black text-[8.5px]">ITEM: {ord.productName.slice(0, 18)}...</p>
+                                    <p className="text-[7.5px] text-gray-500 mt-0.5">Qty: {ord.quantity} • ID: {ord.id}</p>
                                   </div>
-                                  <div className="text-right">
-                                    <p className="text-[8px] bg-emerald-100 text-emerald-800 font-black px-1.5 py-0.5 rounded">COD PARCEL</p>
-                                    <p className="font-black text-emerald-600 text-[10px] mt-0.5">₹{ord.totalPrice}</p>
+                                  <div className="text-right flex flex-col items-end">
+                                    <p className="text-[8px] border border-gray-900 text-black font-black px-1.5 py-0.5 rounded bg-white">COD PARCEL</p>
+                                    <p className="font-black text-black text-[11px] mt-0.5">₹{ord.totalPrice}</p>
                                   </div>
                                 </div>
                               </div>
@@ -1790,7 +1974,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
               {pageChunk.map((ord) => (
                 <div
                   key={`print-label-${ord.id}`}
-                  className="border-2 border-dashed border-gray-400 p-[5mm] rounded-2xl flex flex-col justify-between bg-white text-[11px] leading-normal h-full"
+                  className="border-2 border-solid border-black p-[5mm] rounded flex flex-col justify-between bg-white text-[11px] leading-normal h-full text-black"
                   style={{
                     boxSizing: "border-box",
                     height: "100%",
@@ -1799,33 +1983,35 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                 >
                   {/* FROM ADDRESS */}
                   <div className="border-b-2 border-gray-300 pb-[3mm] flex flex-col">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] bg-black text-white font-black tracking-widest px-2 py-0.5 rounded">SENDER (RETURN)</span>
-                      <span className="font-black text-[11px] tracking-wide text-emerald-600">SMART SUPPLY®</span>
+                    <div className="flex justify-between items-center bg-gray-100 p-1 rounded">
+                      <span className="text-[10px] text-black font-black tracking-widest px-2 py-0.5 rounded">SENDER (RETURN)</span>
+                      <span className="font-black text-[11px] tracking-wide text-blue-600">SMART SUPPLY®</span>
                     </div>
-                    <p className="font-black text-gray-900 text-[12px] mt-1.5">{FROM_ADDRESS.name}</p>
-                    <p className="text-gray-600 text-[10px] leading-relaxed mt-0.5">{FROM_ADDRESS.address}</p>
-                    <p className="font-black text-gray-900 text-[11px] mt-0.5">PIN Code: {FROM_ADDRESS.pincode}</p>
+                    <p className="font-black text-black text-[13px] mt-1.5">{FROM_ADDRESS.name}</p>
+                    <p className="text-gray-800 text-[10.5px] leading-relaxed mt-0.5">{FROM_ADDRESS.address}</p>
+                    <p className="font-black text-black text-[11.5px] mt-0.5">PIN Code: {FROM_ADDRESS.pincode} | Phone: {FROM_ADDRESS.phone}</p>
                   </div>
 
                   {/* TO ADDRESS */}
                   <div className="py-[4mm] flex-1 flex flex-col justify-center">
-                    <span className="text-[10px] bg-emerald-600 text-white font-black tracking-widest px-2 py-0.5 rounded self-start">RECIPIENT (TO)</span>
-                    <p className="font-black text-gray-950 text-[15px] leading-none mt-2.5">{ord.name}</p>
-                    <p className="text-gray-900 font-extrabold text-[12px] mt-1">📞 WhatsApp Number: {ord.phone}</p>
-                    <p className="text-gray-800 font-bold text-[12px] leading-snug mt-1.5">{ord.address}</p>
-                    <p className="font-black text-gray-950 text-[13px] mt-2 bg-gray-100 py-1 px-2 rounded inline-block self-start">📮 Area PIN Code: {ord.pincode}</p>
+                    <div className="bg-gray-100 p-1 rounded self-start mb-1">
+                      <span className="text-[10px] text-black font-black tracking-widest px-2 py-0.5 rounded">RECIPIENT (TO)</span>
+                    </div>
+                    <p className="font-black text-black text-[16px] leading-none mt-2">{ord.name}</p>
+                    <p className="text-black font-black text-[13px] mt-1.5">📞 WhatsApp Number: {ord.phone}</p>
+                    <p className="text-gray-900 font-bold text-[12.5px] leading-snug mt-1.5">{ord.address}</p>
+                    <p className="font-black text-black text-[14px] mt-2 bg-gray-100 py-1 px-2.5 rounded border border-black inline-block self-start">📮 Area PIN Code: {ord.pincode}</p>
                   </div>
 
                   {/* LABEL FOOTER INFO */}
                   <div className="border-t-2 border-gray-300 pt-[3mm] flex justify-between items-center">
                     <div className="max-w-[70%]">
-                      <p className="font-black text-gray-950 text-[10px] uppercase truncate">Product: {ord.productName}</p>
-                      <p className="text-[9px] text-gray-500 font-semibold mt-0.5">Qty: {ord.quantity} • Order Reference: {ord.id}</p>
+                      <p className="font-black text-black text-[11px] uppercase truncate">Product: {ord.productName}</p>
+                      <p className="text-[10px] text-gray-600 font-semibold mt-0.5">Qty: {ord.quantity} • Order Reference: {ord.id}</p>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded tracking-wide inline-block uppercase">CASH ON DELIVERY</span>
-                      <p className="font-black text-emerald-600 text-[16px] leading-none mt-1">₹{ord.totalPrice}</p>
+                    <div className="text-right flex flex-col items-end">
+                      <span className="text-[10px] border border-black text-black font-black px-2 py-0.5 rounded tracking-wide inline-block uppercase bg-white">CASH ON DELIVERY</span>
+                      <p className="font-black text-black text-[17px] leading-none mt-1">₹{ord.totalPrice}</p>
                     </div>
                   </div>
                 </div>

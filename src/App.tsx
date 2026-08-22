@@ -229,7 +229,7 @@ export default function App() {
         <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 select-none font-sans">
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-8">
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="bg-emerald-50 text-emerald-600 p-4 rounded-2xl shadow-inner">
+              <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl shadow-inner">
                 <Lock className="w-8 h-8" />
               </div>
               <div>
@@ -251,7 +251,7 @@ export default function App() {
                       setPasswordInput(e.target.value);
                       if (passwordError) setPasswordError("");
                     }}
-                    className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-gray-900 transition-all"
+                    className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all"
                   />
                   <button
                     type="button"
@@ -313,7 +313,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased selection:bg-blue-500 selection:text-white">
       {/* Universal Sticky / Float Top Header */}
       <Header onAdminClick={() => setIsAdminMode(true)} />
 
@@ -342,12 +342,12 @@ export default function App() {
                 </button>
                 <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
                 <div>
-                  <span className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-widest block font-sans">SECURE CHECKOUT</span>
+                  <span className="text-[10px] text-blue-600 font-extrabold uppercase tracking-widest block font-sans">SECURE CHECKOUT</span>
                   <h2 className="text-gray-900 font-black text-lg tracking-tight leading-none mt-1">Cash on Delivery Order Page</h2>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 font-bold text-xs">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="flex items-center gap-2 text-blue-700 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 font-bold text-xs">
+                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
                 <span>Verified Doorstep Payment (COD)</span>
               </div>
             </div>
@@ -365,7 +365,7 @@ export default function App() {
                       referrerPolicy="no-referrer"
                     />
                     <div>
-                      <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wide">
+                      <span className="bg-blue-50 text-blue-700 text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wide">
                         {checkoutProduct.tag}
                       </span>
                       <h3 className="text-gray-900 font-black text-base tracking-tight leading-snug mt-1.5">
@@ -388,14 +388,14 @@ export default function App() {
                         <span>Special Promo Discount:</span>
                         <span>- ₹{checkoutProduct.originalPrice - checkoutProduct.discountedPrice}</span>
                       </div>
-                      <div className="flex justify-between text-emerald-600 font-bold">
+                      <div className="flex justify-between text-blue-600 font-bold">
                         <span>Delivery Charges (100% Free):</span>
                         <span>₹0</span>
                       </div>
                       <div className="h-[1px] bg-gray-200/60 my-1" />
                       <div className="flex justify-between text-gray-900 font-black text-base">
                         <span>Total Payable at Doorstep:</span>
-                        <span className="text-emerald-600">₹{checkoutProduct.discountedPrice}</span>
+                        <span className="text-blue-600">₹{checkoutProduct.discountedPrice}</span>
                       </div>
                     </div>
                   </div>
@@ -405,7 +405,7 @@ export default function App() {
                     <ul className="flex flex-col gap-2 text-[11px] text-gray-600 font-medium">
                       {checkoutProduct.features.map((feat, idx) => (
                         <li key={idx} className="flex items-start gap-2">
-                          <div className="w-4 h-4 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                          <div className="w-4 h-4 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold">
                             ✓
                           </div>
                           <span>{feat}</span>
@@ -440,8 +440,8 @@ export default function App() {
           <>
             {/* Store Introduction Heading */}
             <div className="w-full text-center flex flex-col items-center gap-2.5 mt-2">
-              <span className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-widest bg-emerald-50 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 animate-spin text-emerald-500" />
+              <span className="text-[10px] text-blue-600 font-extrabold uppercase tracking-widest bg-blue-50 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 animate-spin text-blue-500" />
                 3D Interactive Product Catalog
               </span>
               <h2 className="text-gray-950 font-black text-3xl md:text-4xl tracking-tight leading-tight max-w-2xl">
@@ -454,19 +454,19 @@ export default function App() {
 
             {/* Notification alert on card selection */}
             {justSelected && (
-              <div className="w-full max-w-3xl mx-auto bg-emerald-50 border-2 border-emerald-500/20 text-emerald-950 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md animate-pulse">
+              <div className="w-full max-w-3xl mx-auto bg-blue-50 border-2 border-blue-500/20 text-blue-950 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md animate-pulse">
                 <div className="flex items-center gap-3 text-center sm:text-left">
-                  <div className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center font-black text-sm shrink-0">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-sm shrink-0">
                     ✓
                   </div>
                   <div>
                     <p className="text-sm font-black">Selected for COD: {activeProduct.name}</p>
-                    <p className="text-xs text-emerald-700 font-bold">We loaded this product into your Cash on Delivery form below!</p>
+                    <p className="text-xs text-blue-700 font-bold">We loaded this product into your Cash on Delivery form below!</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => scrollToCheckout()}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md cursor-pointer whitespace-nowrap"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md cursor-pointer whitespace-nowrap"
                 >
                   Go to Checkout Form ↓
                 </button>
@@ -522,7 +522,7 @@ export default function App() {
                             <p className="text-gray-950 font-extrabold text-sm flex items-center gap-1.5">
                               {review.author}
                               {review.verified && (
-                                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black tracking-wide uppercase px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
+                                <span className="bg-blue-100 text-blue-800 text-[9px] font-black tracking-wide uppercase px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
                                   <Check className="w-2.5 h-2.5 stroke-[3px]" /> Verified
                                 </span>
                               )}
@@ -559,9 +559,19 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-b border-gray-800 pb-8">
             {/* Column 1 */}
             <div className="flex flex-col gap-3">
-              <span className="text-xl font-black text-white tracking-tight">
-                SMART<span className="text-emerald-500">SUPPLY</span>
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-gray-700">
+                  <img
+                    src="https://i.ibb.co/Y4V31vLX/Whats-App-Image-2026-08-22-at-10-27-32-AM.jpg"
+                    alt="Smart Supply Logo"
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <span className="text-xl font-black text-white tracking-tight">
+                  SMART<span className="text-blue-500">SUPPLY</span>
+                </span>
+              </div>
               <p className="text-xs leading-relaxed text-gray-400">
                 Bringing the world's cleverest, time-saving kitchen accessories and gadgets to your home with zero prepaid risk. We deliver genuine quality products that make your life simpler.
               </p>
@@ -572,15 +582,15 @@ export default function App() {
               <span className="text-white font-extrabold text-sm tracking-tight">Support Contacts</span>
               <div className="flex flex-col gap-2 text-xs">
                 <a href="tel:+919946597203" className="hover:text-white flex items-center gap-2 transition-colors">
-                  <Phone className="w-4 h-4 text-emerald-500" />
+                  <Phone className="w-4 h-4 text-blue-500" />
                   <span>+91 9946597203 (Helpline)</span>
                 </a>
                 <a href="tel:+919539364862" className="hover:text-white flex items-center gap-2 transition-colors">
-                  <Phone className="w-4 h-4 text-emerald-500" />
+                  <Phone className="w-4 h-4 text-blue-500" />
                   <span>+91 95393 64862 (Alternate)</span>
                 </a>
                 <a href="mailto:smartsupply36@gmail.com" className="hover:text-white flex items-center gap-2 transition-colors">
-                  <Mail className="w-4 h-4 text-emerald-500" />
+                  <Mail className="w-4 h-4 text-blue-500" />
                   <span>smartsupply36@gmail.com</span>
                 </a>
               </div>
@@ -592,9 +602,9 @@ export default function App() {
               <p className="text-xs leading-relaxed text-gray-400">
                 You do not need to share debit cards, credit cards, or net-banking info. We support 100% safe Pay on Delivery. Pay only when you physically check the parcel!
               </p>
-              <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl">
-                <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />
-                <span className="text-[10px] text-emerald-400 font-bold leading-normal">
+              <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-xl">
+                <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0" />
+                <span className="text-[10px] text-blue-400 font-bold leading-normal">
                   OFFICIAL SMART SUPPLY GENUINE BRAND GUARANTEE
                 </span>
               </div>
