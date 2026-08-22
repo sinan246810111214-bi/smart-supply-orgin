@@ -114,10 +114,19 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
   const [inventory, setInventory] = useState<Record<string, number>>({});
 
   // Cloudinary configuration & upload state
-  const [cloudinaryCloudName, setCloudinaryCloudName] = useState(() => localStorage.getItem("cloudinary_cloud_name") || "xgkuinaj");
+  const [cloudinaryCloudName, setCloudinaryCloudName] = useState(() => {
+    const stored = localStorage.getItem("cloudinary_cloud_name");
+    return (stored && stored !== "dqv908clg") ? stored : "xgkuinaj";
+  });
   const [cloudinaryPreset, setCloudinaryPreset] = useState(() => localStorage.getItem("cloudinary_preset") || "ml_default");
-  const [cloudinaryApiKey, setCloudinaryApiKey] = useState(() => localStorage.getItem("cloudinary_api_key") || "818789479113189");
-  const [cloudinaryApiSecret, setCloudinaryApiSecret] = useState(() => localStorage.getItem("cloudinary_api_secret") || "rrwnAeWxvgd-xEhhhO5txQsY9bg");
+  const [cloudinaryApiKey, setCloudinaryApiKey] = useState(() => {
+    const stored = localStorage.getItem("cloudinary_api_key");
+    return (stored && stored !== "818789479113189") ? stored : "818789479113189";
+  });
+  const [cloudinaryApiSecret, setCloudinaryApiSecret] = useState(() => {
+    const stored = localStorage.getItem("cloudinary_api_secret");
+    return (stored && stored !== "rrwnAeWxvgd-xEhhhO5txQsY9bg") ? stored : "rrwnAeWxvgd-xEhhhO5txQsY9bg";
+  });
   const [uploadState, setUploadState] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [uploadError, setUploadError] = useState("");
 
@@ -153,7 +162,9 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       formData.append("api_key", cloudinaryApiKey);
       
       let stringToSign = "";
-      if (cloudinaryPreset) {
+      // "ml_default" is a standard unsigned preset. If doing a signed upload with it,
+      // Cloudinary will fail with a preset mismatch. So we only include the preset if it is custom/not "ml_default".
+      if (cloudinaryPreset && cloudinaryPreset !== "ml_default") {
         formData.append("upload_preset", cloudinaryPreset);
         stringToSign = `timestamp=${timestamp}&upload_preset=${cloudinaryPreset}${cloudinaryApiSecret}`;
       } else {
@@ -970,55 +981,6 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                             className="w-full px-3 py-2 bg-white border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2"
                           />
                         </div>
-
-                        {/* Optional Credentials Setting */}
-                        <div className="border-t border-gray-200 mt-2 pt-2 flex flex-col gap-2">
-                          <details className="cursor-pointer group">
-                            <summary className="text-[10px] font-black text-gray-400 group-hover:text-gray-600 uppercase tracking-widest list-none flex items-center gap-1.5">
-                              ⚙️ Cloudinary Credentials Configuration
-                            </summary>
-                            <div className="grid grid-cols-2 gap-2 mt-2 p-2 bg-white border border-gray-150 rounded-xl">
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-gray-500 text-[9px]">Cloud Name</span>
-                                <input
-                                  type="text"
-                                  value={cloudinaryCloudName}
-                                  onChange={(e) => setCloudinaryCloudName(e.target.value)}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-gray-500 text-[9px]">Upload Preset</span>
-                                <input
-                                  type="text"
-                                  value={cloudinaryPreset}
-                                  onChange={(e) => setCloudinaryPreset(e.target.value)}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-gray-500 text-[9px]">API Key (Signed)</span>
-                                <input
-                                  type="text"
-                                  placeholder="API Key..."
-                                  value={cloudinaryApiKey}
-                                  onChange={(e) => setCloudinaryApiKey(e.target.value)}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-gray-500 text-[9px]">API Secret (Signed)</span>
-                                <input
-                                  type="password"
-                                  placeholder="API Secret..."
-                                  value={cloudinaryApiSecret}
-                                  onChange={(e) => setCloudinaryApiSecret(e.target.value)}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
-                                />
-                              </div>
-                            </div>
-                          </details>
-                        </div>
                       </div>
 
                       <div className="flex flex-col gap-1.5">
@@ -1159,55 +1121,6 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                             onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
                             className="w-full px-3 py-2 bg-white border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:ring-2"
                           />
-                        </div>
-
-                        {/* Optional Credentials Setting */}
-                        <div className="border-t border-gray-200 mt-2 pt-2 flex flex-col gap-2">
-                          <details className="cursor-pointer group">
-                            <summary className="text-[10px] font-black text-gray-400 group-hover:text-gray-600 uppercase tracking-widest list-none flex items-center gap-1.5">
-                              ⚙️ Cloudinary Credentials Configuration
-                            </summary>
-                            <div className="grid grid-cols-2 gap-2 mt-2 p-2 bg-white border border-gray-150 rounded-xl">
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-gray-500 text-[9px]">Cloud Name</span>
-                                <input
-                                  type="text"
-                                  value={cloudinaryCloudName}
-                                  onChange={(e) => setCloudinaryCloudName(e.target.value)}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-gray-500 text-[9px]">Upload Preset</span>
-                                <input
-                                  type="text"
-                                  value={cloudinaryPreset}
-                                  onChange={(e) => setCloudinaryPreset(e.target.value)}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-gray-500 text-[9px]">API Key (Signed)</span>
-                                <input
-                                  type="text"
-                                  placeholder="API Key..."
-                                  value={cloudinaryApiKey}
-                                  onChange={(e) => setCloudinaryApiKey(e.target.value)}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <span className="font-bold text-gray-500 text-[9px]">API Secret (Signed)</span>
-                                <input
-                                  type="password"
-                                  placeholder="API Secret..."
-                                  value={cloudinaryApiSecret}
-                                  onChange={(e) => setCloudinaryApiSecret(e.target.value)}
-                                  className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold"
-                                />
-                              </div>
-                            </div>
-                          </details>
                         </div>
                       </div>
 
