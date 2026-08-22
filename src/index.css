@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/* 3D Flip Card Utility Classes */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Custom Scrollbar Styles for Product Selection Tabs */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 5px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Strict A4 Print CSS Stylesheets */
+@media print {
+  /* Set exact A4 Dimensions */
+  @page {
+    size: A4 portrait;
+    margin: 0 !important;
+  }
+  
+  html, body, #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    background: #ffffff !important;
+  }
+
+  /* Completely hide all interactive non-printing components */
+  header, footer, nav, aside, button, select, input, .print\:hidden {
+    display: none !important;
+  }
+
+  /* Display the high-fidelity print pages and their sub-grids */
+  .print-page-layout {
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    page-break-after: always !important;
+    page-break-inside: avoid !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+}
+
