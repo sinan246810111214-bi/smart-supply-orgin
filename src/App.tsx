@@ -338,7 +338,7 @@ export default function App() {
                   onClick={() => setCheckoutProduct(null)}
                   className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer border border-gray-200"
                 >
-                  ← Back to Shop
+                  ← ORDER OTHER PRODUCTS
                 </button>
                 <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
                 <div>

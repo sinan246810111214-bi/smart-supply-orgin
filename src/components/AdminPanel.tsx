@@ -601,18 +601,18 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
-      doc.text(FROM_ADDRESS.name, x + 3, y + 11);
+      doc.text(FROM_ADDRESS.name.toUpperCase(), x + 3, y + 11);
 
       doc.setFont("helvetica", "normal");
       doc.setTextColor(40, 40, 40);
       doc.setFontSize(7.5);
       
-      const fromAddrLines = doc.splitTextToSize(FROM_ADDRESS.address + " - PIN: " + FROM_ADDRESS.pincode, cardWidth - 6);
+      const fromAddrLines = doc.splitTextToSize((FROM_ADDRESS.address + " - PIN: " + FROM_ADDRESS.pincode).toUpperCase(), cardWidth - 6);
       doc.text(fromAddrLines, x + 3, y + 14.5);
 
       // Print sender's phone number and Customer ID clearly
       doc.setFont("helvetica", "bold");
-      doc.text("Phone: " + FROM_ADDRESS.phone + "  |  Cust ID: " + FROM_ADDRESS.customerId, x + 3, y + 21.5);
+      doc.text("PHONE: " + FROM_ADDRESS.phone + "  |  CUST ID: " + FROM_ADDRESS.customerId, x + 3, y + 21.5);
 
       // Separator line
       doc.setDrawColor(0, 0, 0);
@@ -632,19 +632,19 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text(ord.name, x + 3, y + 35);
+      doc.text(ord.name.toUpperCase(), x + 3, y + 35);
 
       // WhatsApp Phone - Highly prominent for delivery executives
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10.5);
-      doc.text("WhatsApp Phone: " + ord.phone, x + 3, y + 40);
+      doc.text("WHATSAPP PHONE: " + ord.phone, x + 3, y + 40);
 
       // Delivery Address text - very clear and high-contrast
       doc.setFont("helvetica", "bold");
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8.5);
       
-      const toAddrLines = doc.splitTextToSize(ord.address, cardWidth - 6);
+      const toAddrLines = doc.splitTextToSize(ord.address.toUpperCase(), cardWidth - 6);
       doc.text(toAddrLines, x + 3, y + 45);
 
       // Large Area Pincode
@@ -660,13 +660,13 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       
-      const prodNameLines = doc.splitTextToSize(ord.productName, cardWidth - 36);
+      const prodNameLines = doc.splitTextToSize(ord.productName.toUpperCase(), cardWidth - 36);
       doc.text(prodNameLines, x + 3, y + 67.5);
 
       doc.setFont("helvetica", "normal");
       doc.setTextColor(80, 80, 80);
       doc.setFontSize(7.5);
-      doc.text(`Qty: ${ord.quantity}  |  Ref: ${ord.id}`, x + 3, y + 78);
+      doc.text(`QTY: ${ord.quantity}  |  REF: ${ord.id}`, x + 3, y + 78);
 
       // Clean Outlined COD Box (no heavy dark solid ink wasting box)
       doc.setDrawColor(0, 0, 0);
@@ -1900,9 +1900,9 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                                     <span className="text-[8px] text-gray-900 font-extrabold tracking-wider">FROM (SENDER)</span>
                                     <span className="font-black text-[8px] text-blue-600">SMART SUPPLY</span>
                                   </div>
-                                  <p className="font-extrabold text-black text-[10px] mt-1">{FROM_ADDRESS.name}</p>
-                                  <p className="text-gray-600 leading-tight text-[8px] mt-0.5">{FROM_ADDRESS.address}</p>
-                                  <p className="font-extrabold text-black text-[9px] mt-0.5">PIN: {FROM_ADDRESS.pincode} | Phone: {FROM_ADDRESS.phone} | Cust ID: {FROM_ADDRESS.customerId}</p>
+                                  <p className="font-extrabold text-black text-[10px] mt-1">{FROM_ADDRESS.name.toUpperCase()}</p>
+                                  <p className="text-gray-600 leading-tight text-[8px] mt-0.5">{FROM_ADDRESS.address.toUpperCase()}</p>
+                                  <p className="font-extrabold text-black text-[9px] mt-0.5">PIN: {FROM_ADDRESS.pincode} | PHONE: {FROM_ADDRESS.phone} | CUST ID: {FROM_ADDRESS.customerId}</p>
                                 </div>
 
                                 {/* Recipient To section */}
@@ -1910,17 +1910,17 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                                   <div className="bg-gray-100 p-1 rounded self-start mb-1">
                                     <span className="text-[8px] text-black font-extrabold tracking-wider">TO (DELIVER)</span>
                                   </div>
-                                  <p className="font-black text-black text-xs">{ord.name}</p>
-                                  <p className="text-black font-black text-[10px] mt-0.5">📞 WhatsApp: {ord.phone}</p>
-                                  <p className="text-gray-800 font-extrabold leading-snug text-[9.5px] mt-0.5 line-clamp-2">{ord.address}</p>
-                                  <p className="font-black text-black text-[10.5px] mt-1 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200 inline-block self-start">📮 PIN Code: {ord.pincode}</p>
+                                  <p className="font-black text-black text-xs">{ord.name.toUpperCase()}</p>
+                                  <p className="text-black font-black text-[10px] mt-0.5">📞 WHATSAPP: {ord.phone}</p>
+                                  <p className="text-gray-800 font-extrabold leading-snug text-[9.5px] mt-0.5 line-clamp-2">{ord.address.toUpperCase()}</p>
+                                  <p className="font-black text-black text-[10.5px] mt-1 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200 inline-block self-start">📮 PIN CODE: {ord.pincode}</p>
                                 </div>
 
                                 {/* Footer details */}
                                 <div className="border-t border-gray-300 pt-1.5 flex justify-between items-center">
                                   <div>
-                                    <p className="font-extrabold text-black text-[8.5px]">ITEM: {ord.productName.slice(0, 18)}...</p>
-                                    <p className="text-[7.5px] text-gray-500 mt-0.5">Qty: {ord.quantity} • ID: {ord.id}</p>
+                                    <p className="font-extrabold text-black text-[8.5px]">ITEM: {ord.productName.toUpperCase().slice(0, 18)}...</p>
+                                    <p className="text-[7.5px] text-gray-500 mt-0.5">QTY: {ord.quantity} • ID: {ord.id}</p>
                                   </div>
                                   <div className="text-right flex flex-col items-end">
                                     <p className="text-[8px] border border-gray-900 text-black font-black px-1.5 py-0.5 rounded bg-white">COD PARCEL</p>
@@ -1988,9 +1988,9 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                       <span className="text-[10px] text-black font-black tracking-widest px-2 py-0.5 rounded">SENDER (RETURN)</span>
                       <span className="font-black text-[11px] tracking-wide text-blue-600">SMART SUPPLY®</span>
                     </div>
-                    <p className="font-black text-black text-[13px] mt-1.5">{FROM_ADDRESS.name}</p>
-                    <p className="text-gray-800 text-[10.5px] leading-relaxed mt-0.5">{FROM_ADDRESS.address}</p>
-                    <p className="font-black text-black text-[11.5px] mt-0.5">PIN Code: {FROM_ADDRESS.pincode} | Phone: {FROM_ADDRESS.phone} | Cust ID: {FROM_ADDRESS.customerId}</p>
+                    <p className="font-black text-black text-[13px] mt-1.5">{FROM_ADDRESS.name.toUpperCase()}</p>
+                    <p className="text-gray-800 text-[10.5px] leading-relaxed mt-0.5">{FROM_ADDRESS.address.toUpperCase()}</p>
+                    <p className="font-black text-black text-[11.5px] mt-0.5">PIN CODE: {FROM_ADDRESS.pincode} | PHONE: {FROM_ADDRESS.phone} | CUST ID: {FROM_ADDRESS.customerId}</p>
                   </div>
 
                   {/* TO ADDRESS */}
@@ -1998,17 +1998,17 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                     <div className="bg-gray-100 p-1 rounded self-start mb-1">
                       <span className="text-[10px] text-black font-black tracking-widest px-2 py-0.5 rounded">RECIPIENT (TO)</span>
                     </div>
-                    <p className="font-black text-black text-[16px] leading-none mt-2">{ord.name}</p>
-                    <p className="text-black font-black text-[13px] mt-1.5">📞 WhatsApp Number: {ord.phone}</p>
-                    <p className="text-gray-900 font-bold text-[12.5px] leading-snug mt-1.5">{ord.address}</p>
-                    <p className="font-black text-black text-[14px] mt-2 bg-gray-100 py-1 px-2.5 rounded border border-black inline-block self-start">📮 Area PIN Code: {ord.pincode}</p>
+                    <p className="font-black text-black text-[16px] leading-none mt-2">{ord.name.toUpperCase()}</p>
+                    <p className="text-black font-black text-[13px] mt-1.5">📞 WHATSAPP NUMBER: {ord.phone}</p>
+                    <p className="text-gray-900 font-bold text-[12.5px] leading-snug mt-1.5">{ord.address.toUpperCase()}</p>
+                    <p className="font-black text-black text-[14px] mt-2 bg-gray-100 py-1 px-2.5 rounded border border-black inline-block self-start">📮 AREA PIN CODE: {ord.pincode}</p>
                   </div>
 
                   {/* LABEL FOOTER INFO */}
                   <div className="border-t-2 border-gray-300 pt-[3mm] flex justify-between items-center">
                     <div className="max-w-[70%]">
-                      <p className="font-black text-black text-[11px] uppercase truncate">Product: {ord.productName}</p>
-                      <p className="text-[10px] text-gray-600 font-semibold mt-0.5">Qty: {ord.quantity} • Order Reference: {ord.id}</p>
+                      <p className="font-black text-black text-[11px] uppercase truncate">PRODUCT: {ord.productName.toUpperCase()}</p>
+                      <p className="text-[10px] text-gray-600 font-semibold mt-0.5">QTY: {ord.quantity} • ORDER REFERENCE: {ord.id}</p>
                     </div>
                     <div className="text-right flex flex-col items-end">
                       <span className="text-[10px] border border-black text-black font-black px-2 py-0.5 rounded tracking-wide inline-block uppercase bg-white">CASH ON DELIVERY</span>

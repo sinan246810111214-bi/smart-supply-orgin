@@ -12,7 +12,9 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
   const [quantity, setQuantity] = useState(1);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [houseName, setHouseName] = useState("");
+  const [post, setPost] = useState("");
+  const [district, setDistrict] = useState("");
   const [pincode, setPincode] = useState("");
   const [estDate, setEstDate] = useState("");
 
@@ -102,21 +104,27 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
     const newErrors: Record<string, string> = {};
 
     if (!name.trim()) {
-      newErrors.name = "Please enter your name";
+      newErrors.name = "Please enter your Name";
     }
 
-    if (phone.length !== 10) {
-      newErrors.phone = "Please enter a valid 10-digit mobile number";
+    if (!houseName.trim()) {
+      newErrors.houseName = "Please enter House Name";
     }
 
-    if (!address.trim()) {
-      newErrors.address = "Please enter your complete address";
-    } else if (address.trim().length < 4) {
-      newErrors.address = "Address is too short. Please provide house/landmark details";
+    if (!post.trim()) {
+      newErrors.post = "Please enter Post Office";
+    }
+
+    if (!district.trim()) {
+      newErrors.district = "Please enter District";
     }
 
     if (pincode.length !== 6) {
       newErrors.pincode = "Please enter a valid 6-digit Pincode";
+    }
+
+    if (phone.length !== 10) {
+      newErrors.phone = "Please enter a valid 10-digit mobile number";
     }
 
     setErrors(newErrors);
@@ -129,10 +137,12 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
 
     setSubmitting(true);
 
+    const combinedAddress = `${houseName.trim()}, ${post.trim()} (PO), ${district.trim()} (Dist)`;
+
     const orderPayload = {
       name: name.trim(),
       phone,
-      address: address.trim(),
+      address: combinedAddress,
       pincode,
       productName: product.name,
       quantity,
@@ -187,21 +197,21 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
         {/* Delivery Address Header */}
         <div className="flex flex-col gap-4">
           <label className="text-gray-950 font-black text-sm flex items-center gap-1.5 border-b border-gray-100 pb-2">
-            Enter Delivery Address (വിലാസം നൽകുക)
+            Delivery Address (വിലാസം നൽകുക)
           </label>
 
           <div className="flex flex-col gap-4">
             {/* Name */}
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-black text-gray-700 flex items-center gap-1">
-                Your Full Name (മുഴുവൻ പേര്) <span className="text-rose-500">*</span>
+                Name (പേര്) <span className="text-rose-500">*</span>
               </span>
               <input
                 type="text"
-                placeholder="Enter your first & last name"
+                placeholder="Enter full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={`w-full px-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 font-extrabold ${
+                className={`w-full px-4 py-3 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 font-extrabold ${
                   errors.name ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                 }`}
               />
@@ -213,52 +223,68 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
               )}
             </div>
 
-            {/* Mobile */}
+            {/* House Name */}
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-black text-gray-700 flex items-center gap-1">
-                WhatsApp Mobile Number (മൊബൈൽ നമ്പർ) <span className="text-rose-500">*</span>
+                House name (വീട്ടുപേര്) <span className="text-rose-500">*</span>
               </span>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-gray-500 border-r-2 border-gray-200 pr-3">
-                  +91
-                </span>
-                <input
-                  type="tel"
-                  placeholder="10-digit mobile number"
-                  value={phone}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                  className={`w-full pl-[68px] pr-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-black text-gray-950 tracking-wide ${
-                    errors.phone ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
-                  }`}
-                />
-              </div>
-              <p className="text-[10px] text-gray-500 font-semibold">⚠️ We will call you to confirm your order before shipping.</p>
-              {errors.phone && (
+              <input
+                type="text"
+                placeholder="Enter house name"
+                value={houseName}
+                onChange={(e) => setHouseName(e.target.value)}
+                className={`w-full px-4 py-3 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 font-bold ${
+                  errors.houseName ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
+                }`}
+              />
+              {errors.houseName && (
                 <p className="text-rose-600 text-[11px] font-bold flex items-center gap-1 mt-0.5">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  {errors.phone}
+                  {errors.houseName}
                 </p>
               )}
             </div>
 
-            {/* Address */}
+            {/* Post */}
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-black text-gray-700 flex items-center gap-1">
-                Full Home Address & Landmark (വീട്ടുപേരും വിലാസവും) <span className="text-rose-500">*</span>
+                Post (പോസ്റ്റ്) <span className="text-rose-500">*</span>
               </span>
-              <textarea
-                rows={3}
-                placeholder="House Name/Number, Ward, Post Office, Nearest Landmark"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+              <input
+                type="text"
+                placeholder="Enter post office name"
+                value={post}
+                onChange={(e) => setPost(e.target.value)}
                 className={`w-full px-4 py-3 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 font-bold ${
-                  errors.address ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
+                  errors.post ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                 }`}
               />
-              {errors.address && (
+              {errors.post && (
                 <p className="text-rose-600 text-[11px] font-bold flex items-center gap-1 mt-0.5">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  {errors.address}
+                  {errors.post}
+                </p>
+              )}
+            </div>
+
+            {/* District */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-black text-gray-700 flex items-center gap-1">
+                District (ജില്ല) <span className="text-rose-500">*</span>
+              </span>
+              <input
+                type="text"
+                placeholder="Enter district name"
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+                className={`w-full px-4 py-3 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 font-bold ${
+                  errors.district ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
+                }`}
+              />
+              {errors.district && (
+                <p className="text-rose-600 text-[11px] font-bold flex items-center gap-1 mt-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  {errors.district}
                 </p>
               )}
             </div>
@@ -266,7 +292,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
             {/* Pincode */}
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-black text-gray-700 flex items-center gap-1">
-                6-Digit Pincode (പിൻകോഡ്) <span className="text-rose-500">*</span>
+                Pincode (പിൻകോഡ്) <span className="text-rose-500">*</span>
               </span>
               <input
                 type="text"
@@ -274,7 +300,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
                 placeholder="6-digit pincode"
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
-                className={`w-full px-4 py-3.5 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-black text-gray-950 tracking-widest ${
+                className={`w-full px-4 py-3 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-black text-gray-950 tracking-widest ${
                   errors.pincode ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                 }`}
               />
@@ -294,6 +320,33 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
                 <p className="text-rose-600 text-[11px] font-bold flex items-center gap-1 mt-0.5">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   {errors.pincode}
+                </p>
+              )}
+            </div>
+
+            {/* Mobile */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-black text-gray-700 flex items-center gap-1">
+                Mobile number (ഫോൺ നമ്പർ) <span className="text-rose-500">*</span>
+              </span>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-gray-500 border-r-2 border-gray-200 pr-3">
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  placeholder="10-digit mobile number"
+                  value={phone}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  className={`w-full pl-[68px] pr-4 py-3 bg-gray-50/50 border-2 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-black text-gray-950 tracking-wide ${
+                    errors.phone ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
+                  }`}
+                />
+              </div>
+              {errors.phone && (
+                <p className="text-rose-600 text-[11px] font-bold flex items-center gap-1 mt-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  {errors.phone}
                 </p>
               )}
             </div>
@@ -370,7 +423,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
           ) : (
             <>
               <Check className="w-5 h-5 stroke-[4px]" />
-              <span>✅ CONFIRM ORDER (CASH ON DELIVERY)</span>
+              <span>⚡ ORDER NOW (CASH ON DELIVERY)</span>
             </>
           )}
         </button>
