@@ -39,7 +39,8 @@ const FROM_ADDRESS = {
   name: "Muhammed Muksith v",
   address: "vazhengal H, palliyal thodi, near amlp school west mappattukara, kulukkallur po",
   pincode: "679337",
-  phone: "+919539364862"
+  phone: "+919539364862",
+  customerId: "1365080816"
 };
 
 interface Order {
@@ -609,9 +610,9 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       const fromAddrLines = doc.splitTextToSize(FROM_ADDRESS.address + " - PIN: " + FROM_ADDRESS.pincode, cardWidth - 6);
       doc.text(fromAddrLines, x + 3, y + 14.5);
 
-      // Print sender's phone number clearly
+      // Print sender's phone number and Customer ID clearly
       doc.setFont("helvetica", "bold");
-      doc.text("Phone: " + FROM_ADDRESS.phone, x + 3, y + 21.5);
+      doc.text("Phone: " + FROM_ADDRESS.phone + "  |  Cust ID: " + FROM_ADDRESS.customerId, x + 3, y + 21.5);
 
       // Separator line
       doc.setDrawColor(0, 0, 0);
@@ -1901,7 +1902,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                                   </div>
                                   <p className="font-extrabold text-black text-[10px] mt-1">{FROM_ADDRESS.name}</p>
                                   <p className="text-gray-600 leading-tight text-[8px] mt-0.5">{FROM_ADDRESS.address}</p>
-                                  <p className="font-extrabold text-black text-[9px] mt-0.5">PIN: {FROM_ADDRESS.pincode} | Phone: {FROM_ADDRESS.phone}</p>
+                                  <p className="font-extrabold text-black text-[9px] mt-0.5">PIN: {FROM_ADDRESS.pincode} | Phone: {FROM_ADDRESS.phone} | Cust ID: {FROM_ADDRESS.customerId}</p>
                                 </div>
 
                                 {/* Recipient To section */}
@@ -1989,7 +1990,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                     </div>
                     <p className="font-black text-black text-[13px] mt-1.5">{FROM_ADDRESS.name}</p>
                     <p className="text-gray-800 text-[10.5px] leading-relaxed mt-0.5">{FROM_ADDRESS.address}</p>
-                    <p className="font-black text-black text-[11.5px] mt-0.5">PIN Code: {FROM_ADDRESS.pincode} | Phone: {FROM_ADDRESS.phone}</p>
+                    <p className="font-black text-black text-[11.5px] mt-0.5">PIN Code: {FROM_ADDRESS.pincode} | Phone: {FROM_ADDRESS.phone} | Cust ID: {FROM_ADDRESS.customerId}</p>
                   </div>
 
                   {/* TO ADDRESS */}
