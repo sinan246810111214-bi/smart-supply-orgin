@@ -447,8 +447,9 @@ export default function App() {
               <h2 className="text-gray-950 font-black text-3xl md:text-4xl tracking-tight leading-tight max-w-2xl">
                 Flip & Explore Our Premium Problem-Solving Gadgets
               </h2>
-              <p className="text-gray-500 text-sm max-w-lg leading-relaxed font-medium">
-                Tap on <b>"View Specs"</b> to flip any card in 3D and read key specs instantly. Click <b>"Order Now"</b> to open our secure Cash on Delivery form!
+              <p className="text-gray-600 text-sm max-w-lg leading-relaxed font-bold">
+                ഓർഡർ ചെയ്യാൻ താഴെയുള്ള <span className="text-blue-600">"ORDER NOW"</span> ബട്ടൺ ക്ലിക്ക് ചെയ്ത് വിലാസം നൽകുക. <br/>
+                <span className="text-xs text-gray-400 font-semibold">(Click "ORDER NOW" below to fill out the contact form & place your order easily)</span>
               </p>
             </div>
 
