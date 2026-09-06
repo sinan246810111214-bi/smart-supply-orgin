@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "An e-commerce purchase order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "pincode": { "type": "string" },
+        "productName": { "type": "string" },
+        "quantity": { "type": "number" },
+        "totalPrice": { "type": "number" },
+        "status": { "type": "string", "enum": ["Pending", "Shipped", "Delivered", "Cancelled"] },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "name", "phone", "address", "pincode", "productName", "quantity", "totalPrice", "status", "timestamp"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "An e-commerce catalog product",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "tagline": { "type": "string" },
+        "description": { "type": "string" },
+        "originalPrice": { "type": "number" },
+        "discountedPrice": { "type": "number" },
+        "discountPercent": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "gallery": { "type": "array" },
+        "features": { "type": "array" },
+        "tag": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "specs": { "type": "object" }
+      },
+      "required": ["id", "name", "tagline", "description", "originalPrice", "discountedPrice", "discountPercent", "imageUrl", "gallery", "features"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection of e-commerce client orders"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of available store products"
+    }
+  }
+}

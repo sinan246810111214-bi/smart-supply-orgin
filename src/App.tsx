@@ -33,6 +33,12 @@ import FAQSection from "./components/FAQSection";
 import TrustBadges from "./components/TrustBadges";
 import AdminPanel from "./components/AdminPanel";
 
+import {
+  subscribeToProducts,
+  saveProductToFirestore,
+  saveOrderToFirestore
+} from "./lib/firebase";
+
 export default function App() {
   const [productsList, setProductsList] = useState<Product[]>(() => {
     const saved = localStorage.getItem("smart_supply_products");
@@ -87,10 +93,20 @@ export default function App() {
     return () => clearInterval(timer);
   }, [minutes, seconds]);
 
-  // Persist products list
+  // Sync products list in real-time with Firestore, fallback/seed if database is empty
   useEffect(() => {
-    localStorage.setItem("smart_supply_products", JSON.stringify(productsList));
-  }, [productsList]);
+    const unsubscribe = subscribeToProducts((products) => {
+      if (products.length > 0) {
+        setProductsList(products);
+      } else {
+        // If Firestore is empty, seed it with default products list
+        PRODUCTS.forEach((p) => {
+          saveProductToFirestore(p).catch((err) => console.error("Error seeding product:", err));
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Handle PIN-code check action
   const handlePincodeCheck = (val: string) => {
@@ -135,10 +151,8 @@ export default function App() {
     setOrderSuccess(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // Instantly persist into Admin Orders ledger
+    // Instantly persist into Firestore Orders ledger
     try {
-      const saved = localStorage.getItem("smart_supply_orders");
-      const current = saved ? JSON.parse(saved) : [];
       const newOrder = {
         id: newOrderId,
         name: details.name || "Unknown Buyer",
@@ -148,14 +162,14 @@ export default function App() {
         productName: activeProduct.name,
         quantity: quantity,
         totalPrice: total,
-        status: "Pending",
-        timestamp: new Date().toLocaleString("en-IN")
+        status: "Pending" as const,
+        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
       };
-      const updated = [newOrder, ...current];
-      localStorage.setItem("smart_supply_orders", JSON.stringify(updated));
+      saveOrderToFirestore(newOrder).catch((err) => console.error("Error saving order to Firestore:", err));
     } catch (err) {
       console.error("Failed to append placed order into admin storage:", err);
     }
+
 
     // Synthesize a beautiful, clean ascending mobile success chime (C5 -> E5 -> G5 -> C6)
     try {

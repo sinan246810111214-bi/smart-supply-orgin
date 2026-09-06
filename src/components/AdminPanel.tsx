@@ -33,6 +33,14 @@ import {
 } from "lucide-react";
 
 import { Product } from "../types";
+import { 
+  Order, 
+  subscribeToOrders, 
+  saveOrderToFirestore, 
+  deleteOrderFromFirestore,
+  saveProductToFirestore,
+  deleteProductFromFirestore
+} from "../lib/firebase";
 
 // Fixed Return Address
 const FROM_ADDRESS = {
@@ -42,19 +50,6 @@ const FROM_ADDRESS = {
   phone: "+919539364862",
   customerId: "1365080816"
 };
-
-interface Order {
-  id: string;
-  name: string;
-  phone: string;
-  address: string;
-  pincode: string;
-  productName: string;
-  quantity: number;
-  totalPrice: number;
-  status: "Pending" | "Shipped" | "Delivered" | "Cancelled";
-  timestamp: string;
-}
 
 interface Customer {
   id: string;
@@ -215,116 +210,119 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
     }
   };
 
-  // Initialize and load everything from localStorage on mount
-  useEffect(() => {
-    // 1. Load Orders or Seed
-    const savedOrders = localStorage.getItem("smart_supply_orders");
-    let currentOrders: Order[] = [];
-    if (savedOrders) {
-      currentOrders = JSON.parse(savedOrders);
-    } else {
-      // High-quality mock seed orders
-      currentOrders = [
-        {
-          id: "SS-341905-182",
-          name: "Vipin K. R.",
-          phone: "9845321045",
-          address: "Karthika Nivas, Near Temple, Thrissur",
-          pincode: "680001",
-          productName: "Smart Supply Ultimate 5-in-1 Best Seller Combo",
-          quantity: 1,
-          totalPrice: 999,
-          status: "Pending",
-          timestamp: "21/08/2026, 12:45:10 PM"
-        },
-        {
-          id: "SS-721498-554",
-          name: "Fathima Noora",
-          phone: "7012948576",
-          address: "Arakkal House, Beach Road, Kozhikode",
-          pincode: "673003",
-          productName: "3-Stage Professional Knife Sharpener",
-          quantity: 1,
-          totalPrice: 249,
-          status: "Shipped",
-          timestamp: "21/08/2026, 02:10:45 PM"
-        },
-        {
-          id: "SS-910432-881",
-          name: "Akhil Joseph",
-          phone: "8129483726",
-          address: "Kunnel Villa, Kadavanthra, Ernakulam",
-          pincode: "682020",
-          productName: "Mini Foldable Self-Squeeze Desktop Mop",
-          quantity: 1,
-          totalPrice: 249,
-          status: "Delivered",
-          timestamp: "20/08/2026, 09:30:15 AM"
-        },
-        {
-          id: "SS-551029-432",
-          name: "Anjana Nair",
-          phone: "9562718293",
-          address: "Devi Krupa, Pattom PO, Thiruvananthapuram",
-          pincode: "695004",
-          productName: "Multifunctional Liquid Shoe Cleaning Brush with Soap Dispenser",
-          quantity: 2,
-          totalPrice: 300,
-          status: "Pending",
-          timestamp: "21/08/2026, 04:15:22 PM"
-        },
-        {
-          id: "SS-223405-119",
-          name: "Mohammed Shafi",
-          phone: "9945382012",
-          address: "Shafi Manzil, Near Town Masjid, Malappuram",
-          pincode: "676505",
-          productName: "Silicone Bottle Cleaning Brush",
-          quantity: 1,
-          totalPrice: 249,
-          status: "Pending",
-          timestamp: "21/08/2026, 05:25:00 PM"
-        },
-        {
-          id: "SS-883491-411",
-          name: "Priya Lakshmi",
-          phone: "9048321092",
-          address: "Lakshmi Nivas, Fort Road, Palakkad",
-          pincode: "678001",
-          productName: "Smart Supply Ultimate 5-in-1 Best Seller Combo",
-          quantity: 1,
-          totalPrice: 999,
-          status: "Shipped",
-          timestamp: "20/08/2026, 11:15:40 AM"
-        },
-        {
-          id: "SS-112398-502",
-          name: "Midhun Kumar",
-          phone: "8086214352",
-          address: "Sree Hari, Bypass Junction, Kannur",
-          pincode: "670002",
-          productName: "3-Stage Professional Knife Sharpener",
-          quantity: 1,
-          totalPrice: 249,
-          status: "Delivered",
-          timestamp: "19/08/2026, 03:40:12 PM"
-        },
-        {
-          id: "SS-445612-990",
-          name: "Arun Bose",
-          phone: "9447215392",
-          address: "Bose Cottage, Kanjikuzhy, Kottayam",
-          pincode: "686004",
-          productName: "Multifunctional 4-in-1 Vegetable & Fruit Peeler",
-          quantity: 1,
-          totalPrice: 199,
-          status: "Pending",
-          timestamp: "21/08/2026, 06:12:05 PM"
-        }
-      ];
-      localStorage.setItem("smart_supply_orders", JSON.stringify(currentOrders));
+  // Seed/Mock Orders
+  const DEFAULT_ORDERS: Order[] = [
+    {
+      id: "SS-341905-182",
+      name: "Vipin K. R.",
+      phone: "9845321045",
+      address: "Karthika Nivas, Near Temple, Thrissur",
+      pincode: "680001",
+      productName: "Smart Supply Ultimate 5-in-1 Best Seller Combo",
+      quantity: 1,
+      totalPrice: 999,
+      status: "Pending",
+      timestamp: "21/08/2026, 12:45:10 PM"
+    },
+    {
+      id: "SS-721498-554",
+      name: "Fathima Noora",
+      phone: "7012948576",
+      address: "Arakkal House, Beach Road, Kozhikode",
+      pincode: "673003",
+      productName: "3-Stage Professional Knife Sharpener",
+      quantity: 1,
+      totalPrice: 249,
+      status: "Shipped",
+      timestamp: "21/08/2026, 02:10:45 PM"
+    },
+    {
+      id: "SS-910432-881",
+      name: "Akhil Joseph",
+      phone: "8129483726",
+      address: "Kunnel Villa, Kadavanthra, Ernakulam",
+      pincode: "682020",
+      productName: "Mini Foldable Self-Squeeze Desktop Mop",
+      quantity: 1,
+      totalPrice: 249,
+      status: "Delivered",
+      timestamp: "20/08/2026, 09:30:15 AM"
+    },
+    {
+      id: "SS-551029-432",
+      name: "Anjana Nair",
+      phone: "9562718293",
+      address: "Devi Krupa, Pattom PO, Thiruvananthapuram",
+      pincode: "695004",
+      productName: "Multifunctional Liquid Shoe Cleaning Brush with Soap Dispenser",
+      quantity: 2,
+      totalPrice: 300,
+      status: "Pending",
+      timestamp: "21/08/2026, 04:15:22 PM"
+    },
+    {
+      id: "SS-223405-119",
+      name: "Mohammed Shafi",
+      phone: "9945382012",
+      address: "Shafi Manzil, Near Town Masjid, Malappuram",
+      pincode: "676505",
+      productName: "Silicone Bottle Cleaning Brush",
+      quantity: 1,
+      totalPrice: 249,
+      status: "Pending",
+      timestamp: "21/08/2026, 05:25:00 PM"
+    },
+    {
+      id: "SS-883491-411",
+      name: "Priya Lakshmi",
+      phone: "9048321092",
+      address: "Lakshmi Nivas, Fort Road, Palakkad",
+      pincode: "678001",
+      productName: "Smart Supply Ultimate 5-in-1 Best Seller Combo",
+      quantity: 1,
+      totalPrice: 999,
+      status: "Shipped",
+      timestamp: "20/08/2026, 11:15:40 AM"
+    },
+    {
+      id: "SS-112398-502",
+      name: "Midhun Kumar",
+      phone: "8086214352",
+      address: "Sree Hari, Bypass Junction, Kannur",
+      pincode: "670002",
+      productName: "3-Stage Professional Knife Sharpener",
+      quantity: 1,
+      totalPrice: 249,
+      status: "Delivered",
+      timestamp: "19/08/2026, 03:40:12 PM"
+    },
+    {
+      id: "SS-445612-990",
+      name: "Arun Bose",
+      phone: "9447215392",
+      address: "Bose Cottage, Kanjikuzhy, Kottayam",
+      pincode: "686004",
+      productName: "Multifunctional 4-in-1 Vegetable & Fruit Peeler",
+      quantity: 1,
+      totalPrice: 199,
+      status: "Pending",
+      timestamp: "21/08/2026, 06:12:05 PM"
     }
-    setOrders(currentOrders);
+  ];
+
+  // Initialize and load everything from Firestore on mount
+  useEffect(() => {
+    // Real-time Firestore orders subscriber
+    const unsubscribe = subscribeToOrders((ordersList) => {
+      if (ordersList.length > 0) {
+        setOrders(ordersList);
+      } else {
+        // Seed default orders if Firestore orders collection is totally empty
+        DEFAULT_ORDERS.forEach((ord) => {
+          saveOrderToFirestore(ord).catch((err) => console.error("Error seeding order:", err));
+        });
+      }
+    });
 
     // 2. Load or Initialize Inventory levels
     const savedInventory = localStorage.getItem("smart_supply_inventory");
@@ -338,6 +336,8 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       setInventory(initialStock);
       localStorage.setItem("smart_supply_inventory", JSON.stringify(initialStock));
     }
+
+    return () => unsubscribe();
   }, [productsList]);
 
   // Synchronize customers and order totals whenever orders change
@@ -373,12 +373,6 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
     localStorage.setItem("smart_supply_inventory", JSON.stringify(newInv));
   };
 
-  // Save orders to localStorage on state update
-  const saveOrders = (newOrders: Order[]) => {
-    setOrders(newOrders);
-    localStorage.setItem("smart_supply_orders", JSON.stringify(newOrders));
-  };
-
   // --- CRUD FUNCTIONS ---
 
   // 1. PRODUCT CRUD
@@ -404,6 +398,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
     const updated = [...productsList, productToAdd];
     onProductsUpdate(updated);
+    saveProductToFirestore(productToAdd).catch((err) => console.error("Error saving product to Firestore:", err));
 
     // Update inventory level as well
     const updatedInv = { ...inventory, [productToAdd.id]: 50 };
@@ -438,12 +433,14 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
     const updated = productsList.map((p) => (p.id === updatedProduct.id ? updatedProduct : p));
     onProductsUpdate(updated);
+    saveProductToFirestore(updatedProduct).catch((err) => console.error("Error updating product in Firestore:", err));
     setEditingProduct(null);
   };
 
   const handleDeleteProduct = (id: string) => {
     const updated = productsList.filter((p) => p.id !== id);
     onProductsUpdate(updated);
+    deleteProductFromFirestore(id).catch((err) => console.error("Error deleting product from Firestore:", err));
 
     // Remove from inventory state
     const updatedInv = { ...inventory };
@@ -453,21 +450,22 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
   // 2. ORDER CRUD
   const handleUpdateOrderStatus = (orderId: string, status: Order["status"]) => {
-    const updated = orders.map((o) => (o.id === orderId ? { ...o, status } : o));
-    saveOrders(updated);
+    const found = orders.find((o) => o.id === orderId);
+    if (found) {
+      const updatedOrder = { ...found, status };
+      saveOrderToFirestore(updatedOrder).catch((err) => console.error("Error updating order status:", err));
+    }
   };
 
   const handleDeleteOrder = (orderId: string) => {
-    const updated = orders.filter((o) => o.id !== orderId);
-    saveOrders(updated);
+    deleteOrderFromFirestore(orderId).catch((err) => console.error("Error deleting order:", err));
     setSelectedOrderIds(selectedOrderIds.filter((id) => id !== orderId));
   };
 
   const handleEditOrderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingOrder) return;
-    const updated = orders.map((o) => (o.id === editingOrder.id ? editingOrder : o));
-    saveOrders(updated);
+    saveOrderToFirestore(editingOrder).catch((err) => console.error("Error saving edited order:", err));
     setEditingOrder(null);
   };
 
@@ -476,22 +474,22 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
     e.preventDefault();
     if (!editingCustomer) return;
 
-    // Update customer profiles by modifying all corresponding orders
-    const updatedOrders = orders.map((o) => {
+    // Update customer profiles by modifying all corresponding orders in Firestore
+    orders.forEach((o) => {
       if (o.phone === editingCustomer.phone) {
-        return {
+        const updated = {
           ...o,
           name: editingCustomer.name,
           address: editingCustomer.address,
           pincode: editingCustomer.pincode
         };
+        saveOrderToFirestore(updated).catch((err) => console.error("Error updating order's customer profile:", err));
       }
-      return o;
     });
 
-    saveOrders(updatedOrders);
     setEditingCustomer(null);
   };
+
 
   // 4. INVENTORY BATCH UPDATES
   const handleStockChange = (productId: string, value: number) => {

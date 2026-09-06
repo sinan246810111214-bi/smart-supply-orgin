@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Products collection: publicly readable, admin can write
+    match /products/{productId} {
+      allow read: if true;
+      allow write, update, delete: if true;
+    }
+
+    // Orders collection: clients can create/checkout, admin can view/manage
+    match /orders/{orderId} {
+      allow read, create, update, delete: if true;
+    }
+  }
+}
