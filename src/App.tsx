@@ -108,6 +108,56 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // 1. Read and initialize active product and checkout product from URL query parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const prodId = params.get("product");
+    if (prodId && productsList.length > 0) {
+      const matched = productsList.find((p) => p.id === prodId);
+      if (matched) {
+        setActiveProduct(matched);
+        setCheckoutProduct(matched);
+      }
+    }
+  }, [productsList]);
+
+  // 2. Synchronize URL query parameters with active selection changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (checkoutProduct) {
+      if (params.get("product") !== checkoutProduct.id) {
+        params.set("product", checkoutProduct.id);
+        window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+      }
+    } else {
+      if (params.has("product")) {
+        params.delete("product");
+        const newSearch = params.toString();
+        const suffix = newSearch ? `?${newSearch}` : "";
+        window.history.pushState({}, "", `${window.location.pathname}${suffix}`);
+      }
+    }
+  }, [checkoutProduct]);
+
+  // 3. Handle browser back/forward buttons smoothly (popstate navigation)
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const prodId = params.get("product");
+      if (prodId) {
+        const matched = productsList.find((p) => p.id === prodId);
+        if (matched) {
+          setActiveProduct(matched);
+          setCheckoutProduct(matched);
+        }
+      } else {
+        setCheckoutProduct(null);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [productsList]);
+
   // Handle PIN-code check action
   const handlePincodeCheck = (val: string) => {
     const cleaned = val.replace(/\D/g, "");
