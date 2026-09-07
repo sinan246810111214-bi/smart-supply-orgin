@@ -60,22 +60,26 @@ async function startServer() {
         ].join("\n");
 
         try {
-          const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-          const response = await fetch(telegramUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: telegramMessage,
-              parse_mode: "Markdown"
-            })
-          });
+          if (typeof fetch !== "undefined") {
+            const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            const response = await fetch(telegramUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: telegramMessage,
+                parse_mode: "Markdown"
+              })
+            });
 
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            console.error("Telegram API returned an error:", errData);
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              console.error("Telegram API returned an error:", errData);
+            } else {
+              console.log(`[Telegram] Successfully sent Order ${orderId} message.`);
+            }
           } else {
-            console.log(`[Telegram] Successfully sent Order ${orderId} message.`);
+            console.warn("[Telegram Backup] global fetch is not defined in this Node.js runtime. Unable to send to Telegram.");
           }
         } catch (telegramErr) {
           console.error("Failed to forward message to Telegram:", telegramErr);

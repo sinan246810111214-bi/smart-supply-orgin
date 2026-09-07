@@ -159,7 +159,7 @@ export default function App() {
         phone: details.phone || "No phone",
         address: details.address || "No address",
         pincode: details.pincode || "000000",
-        productName: activeProduct.name,
+        productName: details.productName || activeProduct.name,
         quantity: quantity,
         totalPrice: total,
         status: "Pending" as const,

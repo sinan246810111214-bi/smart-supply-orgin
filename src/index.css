@@ -1,5 +1,54 @@
 @import "tailwindcss";
 
+/* Royal Blue and Light Cream CSS Variables */
+:root {
+  --royal-blue: #0A2540;
+  --royal-blue-hover: #003366;
+  --light-cream: #FCFAF2;
+  --card-cream: #FDFDFB;
+  --border-cream: #EAE3D2;
+}
+
+body {
+  background-color: var(--light-cream) !important;
+  color: #1E293B;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Base style overrides to enforce classy minimal theme */
+.bg-gray-50 {
+  background-color: var(--light-cream) !important;
+}
+
+.bg-white {
+  background-color: var(--card-cream) !important;
+}
+
+/* Accent Royal Blues */
+.bg-blue-600 {
+  background-color: var(--royal-blue) !important;
+}
+.bg-blue-600:hover {
+  background-color: var(--royal-blue-hover) !important;
+}
+
+.text-blue-600 {
+  color: var(--royal-blue) !important;
+}
+
+.text-blue-700 {
+  color: var(--royal-blue-hover) !important;
+}
+
+.bg-blue-50 {
+  background-color: #F3F0E7 !important;
+  color: var(--royal-blue) !important;
+}
+
+.border-blue-500 {
+  border-color: var(--royal-blue) !important;
+}
+
 /* 3D Flip Card Utility Classes */
 .perspective-1000 {
   perspective: 1000px;
@@ -23,15 +72,15 @@
   height: 5px;
 }
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--light-cream);
   border-radius: 9999px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border-cream);
   border-radius: 9999px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--royal-blue);
 }
 
 /* Strict A4 Print CSS Stylesheets */

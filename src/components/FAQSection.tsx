@@ -10,9 +10,9 @@ export default function FAQSection() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 bg-white rounded-3xl border border-gray-100 p-6 shadow-md">
+    <div className="w-full flex flex-col gap-6 bg-white rounded-3xl border border-gray-150 p-6 shadow-md">
       <div className="flex items-center gap-2.5 border-b border-gray-100 pb-4">
-        <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 shrink-0">
+        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 shrink-0">
           <HelpCircle className="w-4.5 h-4.5" />
         </div>
         <div>
@@ -28,7 +28,7 @@ export default function FAQSection() {
             <div
               key={idx}
               className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
-                isOpen ? "border-emerald-500 bg-emerald-50/5" : "border-gray-150 hover:border-gray-250"
+                isOpen ? "border-blue-500 bg-blue-50/5" : "border-gray-150 hover:border-gray-250"
               }`}
             >
               {/* Accordion Trigger Header */}
@@ -40,7 +40,7 @@ export default function FAQSection() {
                 <span className="leading-snug">{faq.question}</span>
                 <ChevronDown
                   className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-300 ${
-                    isOpen ? "rotate-180 text-emerald-600" : ""
+                    isOpen ? "rotate-180 text-blue-600" : ""
                   }`}
                 />
               </button>
@@ -61,8 +61,8 @@ export default function FAQSection() {
       </div>
 
       {/* Security note */}
-      <div className="bg-emerald-50/30 border border-emerald-100 rounded-2xl p-4 flex items-start gap-3">
-        <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+      <div className="bg-blue-50/30 border border-blue-100 rounded-2xl p-4 flex items-start gap-3">
+        <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
         <div>
           <p className="text-gray-900 font-bold text-xs">Our 7-Day Replacement Policy (रिप्लेसमेंट पॉलिसी)</p>
           <p className="text-gray-500 text-[11px] leading-relaxed mt-0.5">
