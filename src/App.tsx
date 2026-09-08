@@ -108,6 +108,25 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // Trigger ViewContent event on Meta Pixel whenever activeProduct changes
+  useEffect(() => {
+    if (activeProduct) {
+      try {
+        if (typeof window !== "undefined" && (window as any).fbq) {
+          (window as any).fbq("track", "ViewContent", {
+            content_name: activeProduct.name,
+            content_ids: [activeProduct.id],
+            content_type: "product",
+            value: activeProduct.discountedPrice,
+            currency: "INR"
+          });
+        }
+      } catch (err) {
+        console.error("[Meta Pixel] ViewContent track failed:", err);
+      }
+    }
+  }, [activeProduct]);
+
   // 1. Read and initialize active product and checkout product from URL query parameter
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -218,6 +237,22 @@ export default function App() {
       saveOrderToFirestore(newOrder).catch((err) => console.error("Error saving order to Firestore:", err));
     } catch (err) {
       console.error("Failed to append placed order into admin storage:", err);
+    }
+
+    // Trigger Meta Pixel Purchase Conversion tracking
+    try {
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        (window as any).fbq("track", "Purchase", {
+          value: total,
+          currency: "INR",
+          content_name: details.productName || activeProduct.name,
+          content_type: "product",
+          num_items: quantity
+        });
+        console.log("[Meta Pixel] Purchase event tracked successfully:", total);
+      }
+    } catch (pixelErr) {
+      console.error("[Meta Pixel] Tracking failed:", pixelErr);
     }
 
 
