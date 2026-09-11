@@ -65,6 +65,10 @@ export default function App() {
   const [orderedTotal, setOrderedTotal] = useState(0);
   const [orderDetails, setOrderDetails] = useState<any>(null);
 
+  // Lightbox Image viewer states
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightboxTitle, setLightboxTitle] = useState<string>("");
+
   // Countdown timer state
   const [minutes, setMinutes] = useState(14);
   const [seconds, setSeconds] = useState(52);
@@ -434,10 +438,10 @@ export default function App() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-150 p-5 rounded-3xl shadow-sm">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setCheckoutProduct(null)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer border border-gray-200"
+                  onClick={() => scrollToCheckout()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-blue-100"
                 >
-                  ← ORDER OTHER PRODUCTS
+                  ORDER NOW
                 </button>
                 <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
                 <div>
@@ -457,12 +461,24 @@ export default function App() {
               <div className="lg:col-span-6 flex flex-col gap-6">
                 <div className="bg-white border border-gray-150 rounded-3xl p-6 shadow-sm flex flex-col gap-5">
                   <div className="flex items-start gap-4">
-                    <img
-                      src={checkoutProduct.imageUrl}
-                      alt={checkoutProduct.name}
-                      className="w-24 h-24 rounded-2xl object-cover border border-gray-100 shrink-0"
-                      referrerPolicy="no-referrer"
-                    />
+                    <div 
+                      onClick={() => {
+                        setLightboxImage(checkoutProduct.imageUrl);
+                        setLightboxTitle(checkoutProduct.name);
+                      }}
+                      className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-150 shrink-0 cursor-zoom-in group/chkimg"
+                      title="Click to view full screen (വലുതായി കാണാൻ ക്ലിക്ക് ചെയ്യുക)"
+                    >
+                      <img
+                        src={checkoutProduct.imageUrl}
+                        alt={checkoutProduct.name}
+                        className="w-full h-full object-cover group-hover/chkimg:scale-105 transition-transform duration-300"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-black/15 opacity-0 group-hover/chkimg:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-[9px] text-white font-extrabold tracking-wider bg-black/50 px-1.5 py-0.5 rounded uppercase">🔎 ZOOM</span>
+                      </div>
+                    </div>
                     <div>
                       <span className="bg-blue-50 text-blue-700 text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wide">
                         {checkoutProduct.tag}
@@ -539,10 +555,6 @@ export default function App() {
           <>
             {/* Store Introduction Heading */}
             <div className="w-full text-center flex flex-col items-center gap-2.5 mt-2">
-              <span className="text-[10px] text-blue-600 font-extrabold uppercase tracking-widest bg-blue-50 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 animate-spin text-blue-500" />
-                3D Interactive Product Catalog
-              </span>
               <h2 className="text-gray-950 font-black text-3xl md:text-4xl tracking-tight leading-tight max-w-2xl">
                 Flip & Explore Our Premium Problem-Solving Gadgets
               </h2>
@@ -583,6 +595,10 @@ export default function App() {
                   onSelect={() => {
                     setActiveProduct(prod);
                     setCheckoutProduct(prod);
+                  }}
+                  onImageClick={(url, name) => {
+                    setLightboxImage(url);
+                    setLightboxTitle(name);
                   }}
                 />
               ))}
@@ -659,18 +675,13 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-b border-gray-800 pb-8">
             {/* Column 1 */}
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-gray-700">
-                  <img
-                    src="https://i.ibb.co/Y4V31vLX/Whats-App-Image-2026-08-22-at-10-27-32-AM.jpg"
-                    alt="Smart Supply Logo"
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <span className="text-xl font-black text-white tracking-tight">
-                  SMART<span className="text-blue-500">SUPPLY</span>
-                </span>
+              <div className="flex items-center">
+                <img
+                  src="https://i.ibb.co/kWGHYB6/Chat-GPT-Image-Sep-11-2026-10-20-38-AM-removebg-preview.png"
+                  alt="Hovozon Logo"
+                  className="h-10 w-auto object-contain block brightness-0 invert"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <p className="text-xs leading-relaxed text-gray-400">
                 Bringing the world's cleverest, time-saving kitchen accessories and gadgets to your home with zero prepaid risk. We deliver genuine quality products that make your life simpler.
@@ -705,7 +716,7 @@ export default function App() {
               <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-xl">
                 <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0" />
                 <span className="text-[10px] text-blue-400 font-bold leading-normal">
-                  OFFICIAL SMART SUPPLY GENUINE BRAND GUARANTEE
+                  OFFICIAL HOVOZON GENUINE BRAND GUARANTEE
                 </span>
               </div>
             </div>
@@ -713,7 +724,7 @@ export default function App() {
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
             <div className="flex items-center gap-2">
-              <p>© 2026 Smart Supply Kitchen Solvers. All Rights Reserved.</p>
+              <p>© 2026 Hovozon Kitchen Solvers. All Rights Reserved.</p>
               <button
                 onClick={() => setIsAdminMode(true)}
                 className="p-1.5 text-gray-600 hover:text-gray-400 rounded-lg hover:bg-gray-800/50 transition-colors focus:outline-none cursor-pointer"
@@ -732,6 +743,61 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Lightbox Fullscreen Image Modal */}
+      {lightboxImage && (
+        <div 
+          onClick={() => {
+            setLightboxImage(null);
+            setLightboxTitle("");
+          }}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 md:p-8 animate-fade-in select-none"
+        >
+          {/* Close button top-right */}
+          <button 
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxImage(null);
+              setLightboxTitle("");
+            }}
+            className="absolute top-4 right-4 z-50 bg-white/10 hover:bg-white/20 active:scale-95 text-white p-3 rounded-full transition-all cursor-pointer border border-white/10 shadow-lg"
+            title="Close (അടയ്ക്കുക)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Modal Container */}
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="relative w-full max-w-4xl max-h-[85vh] flex flex-col items-center gap-4 animate-scale-in"
+          >
+            {/* Header Title */}
+            {lightboxTitle && (
+              <div className="bg-black/40 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 text-center max-w-lg shadow-xl">
+                <span className="text-white font-black text-sm tracking-tight">{lightboxTitle}</span>
+              </div>
+            )}
+
+            {/* Display Image */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl bg-zinc-950 flex items-center justify-center max-w-full max-h-[75vh]">
+              <img 
+                src={lightboxImage} 
+                alt={lightboxTitle || "Product View"} 
+                className="max-w-full max-h-[70vh] object-contain block select-none"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+            {/* Click to Dismiss helper text */}
+            <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider text-center mt-2 animate-pulse">
+              📍 Click anywhere outside to close (തിരികെ പോകാൻ പുറത്തു ക്ലിക്ക് ചെയ്യുക)
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

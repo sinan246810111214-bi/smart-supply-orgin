@@ -18,7 +18,7 @@ interface SuccessViewProps {
 export default function SuccessView({ orderId, quantity, totalPrice, orderDetails, onReset }: SuccessViewProps) {
   // Generate WhatsApp text for tracking
   const waMessage = encodeURIComponent(
-    `Hello Smart Supply Support,\nI just placed an order on your store! Please confirm and dispatch it fast.\n\n📦 Order Details:\n🆔 Order ID: ${orderId}\n🛍️ Product: ${orderDetails.productName}\n🔢 Qty: ${quantity}\n💵 Total Amount: ₹${totalPrice}\n👤 Name: ${orderDetails.name}\n📞 Phone: ${orderDetails.phone}\n📍 Address: ${orderDetails.address}, ${orderDetails.pincode}`
+    `Hello Hovozon Support,\nI just placed an order on your store! Please confirm and dispatch it fast.\n\n📦 Order Details:\n🆔 Order ID: ${orderId}\n🛍️ Product: ${orderDetails.productName}\n🔢 Qty: ${quantity}\n💵 Total Amount: ₹${totalPrice}\n👤 Name: ${orderDetails.name}\n📞 Phone: ${orderDetails.phone}\n📍 Address: ${orderDetails.address}, ${orderDetails.pincode}`
   );
 
   return (

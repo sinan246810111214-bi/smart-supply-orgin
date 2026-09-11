@@ -18,11 +18,7 @@ export default function Header({ onAdminClick }: HeaderProps) {
 
   return (
     <header className="w-full flex flex-col z-40 relative print:hidden">
-      {/* Top Banner Alert */}
-      <div className="w-full bg-blue-600 text-white text-xs font-semibold py-2.5 px-4 text-center tracking-wide leading-tight flex items-center justify-center gap-2 shadow-inner">
-        <Sparkles className="w-3.5 h-3.5 animate-pulse text-blue-200" />
-        <span>🎉 100% Cash on Delivery & Free Home Delivery Available On All Orders Across India</span>
-      </div>
+
 
       {/* Main Header Row */}
       <div
@@ -32,23 +28,13 @@ export default function Header({ onAdminClick }: HeaderProps) {
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Brand Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border border-gray-150 shadow-md shadow-blue-100">
-              <img
-                src="https://i.ibb.co/Y4V31vLX/Whats-App-Image-2026-08-22-at-10-27-32-AM.jpg"
-                alt="Smart Supply Logo"
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div>
-              <span className="text-xl font-black tracking-tight text-gray-900">
-                SMART<span className="text-blue-600">SUPPLY</span>
-              </span>
-              <p className="text-[9px] text-gray-500 tracking-wider font-semibold uppercase -mt-1">
-                Kitchen Solvers
-              </p>
-            </div>
+          <div className="flex items-center">
+            <img
+              src="https://i.ibb.co/nMzqCQkJ/Chat-GPT-Image-Sep-11-2026-10-20-38-AM.png"
+              alt="Hovozon Logo"
+              className="h-12 md:h-16 w-auto object-contain block"
+              referrerPolicy="no-referrer"
+            />
           </div>
 
           {/* Quick Support & Contact Desktop Block */}

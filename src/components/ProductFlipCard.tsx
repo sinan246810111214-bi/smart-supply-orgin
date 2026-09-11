@@ -7,9 +7,10 @@ interface ProductFlipCardProps {
   product: Product;
   isSelected: boolean;
   onSelect: () => void;
+  onImageClick?: (imageUrl: string, productName: string) => void;
 }
 
-export default function ProductFlipCard({ product, isSelected, onSelect }: ProductFlipCardProps) {
+export default function ProductFlipCard({ product, isSelected, onSelect, onImageClick }: ProductFlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   // Pre-fill WhatsApp message text for quick manual orders
@@ -48,12 +49,28 @@ export default function ProductFlipCard({ product, isSelected, onSelect }: Produ
                 Free Shipping
               </div>
 
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
-                referrerPolicy="no-referrer"
-              />
+              <div 
+                onClick={(e) => {
+                  if (onImageClick) {
+                    e.stopPropagation();
+                    onImageClick(product.imageUrl, product.name);
+                  }
+                }}
+                className="w-full h-full relative cursor-zoom-in group/img"
+                title="Click to view full screen (വലുതായി കാണാൻ ക്ലിക്ക് ചെയ്യുക)"
+              >
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-black/15 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="bg-black/75 text-white text-[10px] font-black tracking-wider uppercase px-3 py-1.5 rounded-lg shadow-md">
+                    🔍 View Full Image
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Title & Reviews */}
