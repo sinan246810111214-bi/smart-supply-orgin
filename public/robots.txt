@@ -1,0 +1,7 @@
+# robots.txt for Hovozon
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://hovozon.com/sitemap.xml
