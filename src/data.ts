@@ -158,6 +158,38 @@ export const PRODUCTS: Product[] = [
     }
   },
   {
+    id: "2-item-combo",
+    name: "Smart Supply Premium 2-Item Best Seller Combo",
+    tagline: "Double the Efficiency—3-Stage Knife Sharpener + 4-in-1 Vegetable Peeler!",
+    description: "Get our top two best-selling, problem-solving smart kitchen tools in one super-saver package! This premium 2-item combo includes our legendary 3-Stage Professional Knife Sharpener to make old blades razor-sharp, and the Multifunctional 4-in-1 Vegetable & Fruit Peeler. Perfect for speeding up your daily cooking prep by 3x!",
+    originalPrice: 1098,
+    discountedPrice: 399,
+    discountPercent: 63,
+    imageUrl: "https://images.unsplash.com/photo-1594756297404-19c2049e3c23?w=800&auto=format&fit=crop&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1594756297404-19c2049e3c23?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1506368249639-73a05d6f6488?w=800&auto=format&fit=crop&q=80"
+    ],
+    features: [
+      "1 x 3-Stage Professional Knife Sharpener",
+      "1 x Multifunctional 4-in-1 Vegetable & Fruit Peeler",
+      "Restore Old Rusted Blades to Razor-Sharp in Seconds",
+      "Saves Over 60% Compared to Separate Purchases",
+      "Comfortable Ergonomic Handles & Slip-Safe Base Design",
+      "100% Free Express Shipping & COD Support Across India"
+    ],
+    tag: "Most Popular Combo",
+    rating: 4.8,
+    reviewCount: 1450,
+    specs: {
+      "Included Products": "3-Stage Knife Sharpener, 4-in-1 Vegetable Peeler",
+      "Materials": "Heavy-Duty ABS Plastic, Food-Grade Stainless Steel Blades",
+      "Shipping Fee": "₹0 (100% Free Shipping Included)",
+      "Payment Mode": "100% Cash on Delivery (COD) Supported",
+      "Warranty/Support": "7-Day Hassle-Free Product Replacement Support"
+    }
+  },
+  {
     id: "bestseller-combo",
     name: "Smart Supply Ultimate 5-in-1 Best Seller Combo",
     tagline: "Save Massive Money—Get All 5 Problem-Solving Tools in One Giant Pack!",

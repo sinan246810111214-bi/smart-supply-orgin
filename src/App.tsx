@@ -102,6 +102,14 @@ export default function App() {
     const unsubscribe = subscribeToProducts((products) => {
       if (products.length > 0) {
         setProductsList(products);
+        // Ensure "2-item-combo" is seeded even if other products already exist in Firestore
+        const has2ItemCombo = products.some((p) => p.id === "2-item-combo");
+        if (!has2ItemCombo) {
+          const combo2Item = PRODUCTS.find((p) => p.id === "2-item-combo");
+          if (combo2Item) {
+            saveProductToFirestore(combo2Item).catch((err) => console.error("Error seeding 2-item-combo:", err));
+          }
+        }
       } else {
         // If Firestore is empty, seed it with default products list
         PRODUCTS.forEach((p) => {
@@ -140,6 +148,10 @@ export default function App() {
       if (matched) {
         setActiveProduct(matched);
         setCheckoutProduct(matched);
+        // Smoothest automatic scroll to the COD form for optimized conversion
+        setTimeout(() => {
+          scrollToCheckout();
+        }, 800);
       }
     }
   }, [productsList]);
