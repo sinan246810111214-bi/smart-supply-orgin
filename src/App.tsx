@@ -73,6 +73,10 @@ export default function App() {
   const [minutes, setMinutes] = useState(14);
   const [seconds, setSeconds] = useState(52);
 
+  // Floating promotion toast states
+  const [showPromoToast, setShowPromoToast] = useState(false);
+  const [promoToastMsg, setPromoToastMsg] = useState("");
+
   // Pincode estimator state
   const [pincodeInput, setPincodeInput] = useState("");
   const [pincodeStatus, setPincodeStatus] = useState<"idle" | "loading" | "valid" | "invalid">("idle");
@@ -139,37 +143,61 @@ export default function App() {
     }
   }, [activeProduct]);
 
-  // 1. Read and initialize active product and checkout product from URL query parameter
+  // 1. Read and initialize active product and checkout product from URL path or query parameter
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const prodId = params.get("product");
-    if (prodId && productsList.length > 0) {
-      const matched = productsList.find((p) => p.id === prodId);
+    if (productsList.length > 0) {
+      let matched: Product | undefined;
+
+      // First try path routing (e.g., /products/2-item-combo)
+      const path = window.location.pathname;
+      if (path.startsWith("/products/")) {
+        const slug = path.split("/products/")[1];
+        matched = productsList.find((p) => p.id === slug);
+      }
+
+      // If not matched by path, check query param (e.g., ?product=2-item-combo)
+      if (!matched) {
+        const params = new URLSearchParams(window.location.search);
+        const prodId = params.get("product");
+        if (prodId) {
+          matched = productsList.find((p) => p.id === prodId);
+        }
+      }
+
       if (matched) {
         setActiveProduct(matched);
         setCheckoutProduct(matched);
+        
+        // Show premium promotional toast
+        setPromoToastMsg(`🎉 Special URL Offer Activated: ${matched.name}!`);
+        setShowPromoToast(true);
+        const toastTimer = setTimeout(() => setShowPromoToast(false), 5000);
+
         // Smoothest automatic scroll to the COD form for optimized conversion
-        setTimeout(() => {
+        const scrollTimer = setTimeout(() => {
           scrollToCheckout();
         }, 800);
+
+        return () => {
+          clearTimeout(toastTimer);
+          clearTimeout(scrollTimer);
+        };
       }
     }
   }, [productsList]);
 
-  // 2. Synchronize URL query parameters with active selection changes
+  // 2. Synchronize URL query parameters and dynamic paths with active selection changes
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
     if (checkoutProduct) {
-      if (params.get("product") !== checkoutProduct.id) {
-        params.set("product", checkoutProduct.id);
-        window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
+      const currentPath = window.location.pathname;
+      const targetPath = `/products/${checkoutProduct.id}`;
+      if (currentPath !== targetPath) {
+        window.history.pushState({}, "", targetPath);
       }
     } else {
-      if (params.has("product")) {
-        params.delete("product");
-        const newSearch = params.toString();
-        const suffix = newSearch ? `?${newSearch}` : "";
-        window.history.pushState({}, "", `${window.location.pathname}${suffix}`);
+      const currentPath = window.location.pathname;
+      if (currentPath !== "/") {
+        window.history.pushState({}, "", "/");
       }
     }
   }, [checkoutProduct]);
@@ -177,16 +205,28 @@ export default function App() {
   // 3. Handle browser back/forward buttons smoothly (popstate navigation)
   useEffect(() => {
     const handlePopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      const prodId = params.get("product");
-      if (prodId) {
-        const matched = productsList.find((p) => p.id === prodId);
+      if (productsList.length > 0) {
+        let matched: Product | undefined;
+        const path = window.location.pathname;
+        if (path.startsWith("/products/")) {
+          const slug = path.split("/products/")[1];
+          matched = productsList.find((p) => p.id === slug);
+        }
+
+        if (!matched) {
+          const params = new URLSearchParams(window.location.search);
+          const prodId = params.get("product");
+          if (prodId) {
+            matched = productsList.find((p) => p.id === prodId);
+          }
+        }
+
         if (matched) {
           setActiveProduct(matched);
           setCheckoutProduct(matched);
+        } else {
+          setCheckoutProduct(null);
         }
-      } else {
-        setCheckoutProduct(null);
       }
     };
     window.addEventListener("popstate", handlePopState);
@@ -428,9 +468,28 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased selection:bg-blue-500 selection:text-white relative">
       {/* Universal Sticky / Float Top Header */}
       <Header onAdminClick={() => setIsAdminMode(true)} />
+
+      {/* Floating Animated Promo Toast */}
+      {showPromoToast && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 animate-bounce max-w-sm w-[90%] md:max-w-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-2xl p-4 rounded-2xl flex items-center gap-3.5 border border-white/20">
+          <div className="bg-white/20 p-2 rounded-xl text-white">
+            <Sparkles className="w-5 h-5 text-amber-300 animate-spin" />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-xs font-black uppercase tracking-wider text-amber-200">Exclusive URL Combo Offer Activated!</h4>
+            <p className="text-[11px] font-bold mt-0.5 leading-snug">{promoToastMsg}</p>
+          </div>
+          <button 
+            onClick={() => setShowPromoToast(false)} 
+            className="text-white/70 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-lg cursor-pointer font-black text-xs"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 md:py-10 flex flex-col gap-10">
         {orderSuccess && orderDetails ? (
@@ -448,7 +507,20 @@ export default function App() {
           <div className="w-full flex flex-col gap-8 animate-fade-in">
             {/* Header / Breadcrumb navigation */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-150 p-5 rounded-3xl shadow-sm">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    setCheckoutProduct(null);
+                    const params = new URLSearchParams(window.location.search);
+                    params.delete("product");
+                    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+                    window.history.pushState({}, "", newUrl);
+                  }}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer border border-gray-200"
+                >
+                  ← Back to Home
+                </button>
+                <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
                 <button
                   onClick={() => scrollToCheckout()}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-blue-100"
