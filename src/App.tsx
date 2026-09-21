@@ -150,16 +150,20 @@ export default function App() {
 
       // First try path routing (e.g., /products/2-item-combo)
       const path = window.location.pathname;
+      let isProductRoute = false;
       if (path.startsWith("/products/")) {
+        isProductRoute = true;
         const slug = path.split("/products/")[1];
         matched = productsList.find((p) => p.id === slug);
       }
 
       // If not matched by path, check query param (e.g., ?product=2-item-combo)
+      let isQueryRoute = false;
       if (!matched) {
         const params = new URLSearchParams(window.location.search);
         const prodId = params.get("product");
         if (prodId) {
+          isQueryRoute = true;
           matched = productsList.find((p) => p.id === prodId);
         }
       }
@@ -182,6 +186,10 @@ export default function App() {
           clearTimeout(toastTimer);
           clearTimeout(scrollTimer);
         };
+      } else if (isProductRoute || isQueryRoute) {
+        // Dynamic route or query slug is invalid - gracefully redirect to home page
+        window.history.replaceState({}, "", "/");
+        setCheckoutProduct(null);
       }
     }
   }, [productsList]);
