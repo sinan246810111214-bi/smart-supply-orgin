@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Phone, MessageCircle, ShoppingBag, Sparkles, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Phone, MessageCircle, ShoppingBag, Sparkles, Settings, Megaphone } from "lucide-react";
 
 interface HeaderProps {
   onAdminClick?: () => void;
@@ -39,6 +40,14 @@ export default function Header({ onAdminClick }: HeaderProps) {
 
           {/* Quick Support & Contact Desktop Block */}
           <div className="hidden md:flex items-center gap-4">
+            <Link
+              to="/ads-catalog"
+              className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-indigo-600 hover:from-rose-600 hover:to-indigo-700 text-white text-xs font-black py-2.5 px-4.5 rounded-full transition-all shadow-md shadow-rose-100 hover:scale-105"
+            >
+              <Megaphone className="w-4 h-4 animate-bounce shrink-0" />
+              <span>Ads Offers</span>
+            </Link>
+
             <div className="flex flex-col text-right mr-2">
               <span className="text-[10px] text-gray-400 font-bold">Helpline (9AM - 9PM)</span>
               <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
@@ -61,6 +70,16 @@ export default function Header({ onAdminClick }: HeaderProps) {
 
           {/* Quick Click Call Support for Mobile */}
           <div className="flex md:hidden items-center gap-2">
+            <Link
+              to="/ads-catalog"
+              className="flex items-center justify-center w-11 h-11 bg-rose-50 border border-rose-200 rounded-full text-rose-600 active:scale-95 transition-transform shadow-sm relative mr-1"
+              title="Ads Catalog Offers"
+            >
+              <Megaphone className="w-5 h-5 animate-pulse" />
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-rose-600 border border-white rounded-full animate-ping" />
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-rose-600 border border-white rounded-full" />
+            </Link>
+
             <a
               href="tel:+919946597203"
               className="flex items-center justify-center w-11 h-11 bg-gray-50 border border-gray-200 rounded-full text-gray-700 active:scale-95 transition-transform shadow-sm"
