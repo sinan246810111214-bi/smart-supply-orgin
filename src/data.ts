@@ -31,7 +31,8 @@ export const PRODUCTS: Product[] = [
       "Sharpening Stages": "1. Prep (Diamond), 2. Sharpen (Tungsten), 3. Finish (Ceramic)",
       "Package Includes": "1 x 3-Stage Knife Sharpener",
       "Warranty": "6 Months Smart Supply Replacement Warranty"
-    }
+    },
+    isAdsCatalog: true
   },
   {
     id: "peeler-4in1",
@@ -63,7 +64,8 @@ export const PRODUCTS: Product[] = [
       "Functions": "Peeling, Julienning, Scraping, Eye-Removing",
       "Dimensions": "18.5 cm x 7.5 cm",
       "Package Includes": "1 x 4-in-1 Peeler"
-    }
+    },
+    isAdsCatalog: true
   },
   {
     id: "shoe-brush",

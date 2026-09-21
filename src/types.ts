@@ -13,6 +13,7 @@ export interface Product {
   rating: number;
   reviewCount: number;
   specs: Record<string, string>;
+  isAdsCatalog?: boolean;
 }
 
 export interface Review {

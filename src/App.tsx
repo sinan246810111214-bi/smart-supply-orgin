@@ -33,6 +33,7 @@ import SuccessView from "./components/SuccessView";
 import FAQSection from "./components/FAQSection";
 import TrustBadges from "./components/TrustBadges";
 import AdminPanel from "./components/AdminPanel";
+import AdsCatalog from "./components/AdsCatalog";
 
 import {
   subscribeToProducts,
@@ -772,6 +773,10 @@ function AppContent() {
             productsList={productsList}
             setProductsList={setProductsList}
           />
+        } />
+
+        <Route path="/ads-catalog" element={
+          <AdsCatalog />
         } />
       </Routes>
 

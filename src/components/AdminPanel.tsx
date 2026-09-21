@@ -109,7 +109,8 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
     tag: "New Arrival",
     rating: 5.0,
     reviewCount: 1,
-    specs: { "Material": "Premium Grade", "Warranty": "6 Months Warranty" }
+    specs: { "Material": "Premium Grade", "Warranty": "6 Months Warranty" },
+    isAdsCatalog: false
   });
 
   // Track product stock level (stored in localStorage)
@@ -393,7 +394,8 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       tag: newProduct.tag || "New",
       rating: Number(newProduct.rating) || 5.0,
       reviewCount: Number(newProduct.reviewCount) || 1,
-      specs: newProduct.specs || {}
+      specs: newProduct.specs || {},
+      isAdsCatalog: !!newProduct.isAdsCatalog
     };
 
     const updated = [...productsList, productToAdd];
@@ -420,7 +422,8 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       tag: "New",
       rating: 5.0,
       reviewCount: 1,
-      specs: { "Warranty": "6 Months Warranty" }
+      specs: { "Warranty": "6 Months Warranty" },
+      isAdsCatalog: false
     });
   };
 
@@ -953,6 +956,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                         <th className="p-4">Original Price</th>
                         <th className="p-4">Offer Price</th>
                         <th className="p-4">Saving Tag</th>
+                        <th className="p-4 text-center">Ads Catalog</th>
                         <th className="p-4 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -972,6 +976,26 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                             <span className="bg-rose-50 border border-rose-100 text-rose-600 px-2 py-0.5 rounded-full text-[9px] font-black">
                               {p.discountPercent}% OFF
                             </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updatedProd = { ...p, isAdsCatalog: !p.isAdsCatalog };
+                                const updated = productsList.map((item) => item.id === p.id ? updatedProd : item);
+                                onProductsUpdate(updated);
+                                saveProductToFirestore(updatedProd).catch((err) => console.error("Error toggling Ads Catalog status:", err));
+                              }}
+                              className={`px-3 py-1.5 rounded-xl font-black text-[10px] tracking-tight transition-all cursor-pointer inline-flex items-center gap-1.5 border leading-none ${
+                                p.isAdsCatalog 
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" 
+                                  : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                              }`}
+                              title={p.isAdsCatalog ? "Remove from Ads Catalog" : "Add to Ads Catalog"}
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                              <span>{p.isAdsCatalog ? "📢 Active" : "🔇 Off"}</span>
+                            </button>
                           </td>
                            <td className="p-4 text-right">
                             {deleteConfirmProductId === p.id ? (
@@ -1153,6 +1177,20 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                         />
                       </div>
 
+                      <div className="flex items-center gap-2.5 bg-blue-50/50 border border-blue-100 p-3.5 rounded-2xl select-none">
+                        <input
+                          type="checkbox"
+                          id="new-product-ads-catalog"
+                          checked={!!newProduct.isAdsCatalog}
+                          onChange={(e) => setNewProduct({ ...newProduct, isAdsCatalog: e.target.checked })}
+                          className="w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500/20 cursor-pointer"
+                        />
+                        <label htmlFor="new-product-ads-catalog" className="font-extrabold text-gray-700 cursor-pointer flex flex-col leading-snug">
+                          <span className="text-gray-900 text-xs">Show in Ads Catalog landing page</span>
+                          <span className="text-[10px] text-gray-400 font-bold normal-case font-sans">This product will be instantly visible in the dedicated /ads-catalog campaign page.</span>
+                        </label>
+                      </div>
+
                       <button
                         type="submit"
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 rounded-xl shadow-lg mt-2 cursor-pointer text-xs"
@@ -1292,6 +1330,20 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                           onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
                           className="w-full px-3 py-2 bg-gray-50 border border-gray-250 rounded-lg text-xs font-semibold focus:outline-none"
                         />
+                      </div>
+
+                      <div className="flex items-center gap-2.5 bg-blue-50/50 border border-blue-100 p-3.5 rounded-2xl select-none">
+                        <input
+                          type="checkbox"
+                          id="edit-product-ads-catalog"
+                          checked={!!editingProduct.isAdsCatalog}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, isAdsCatalog: e.target.checked })}
+                          className="w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500/20 cursor-pointer"
+                        />
+                        <label htmlFor="edit-product-ads-catalog" className="font-extrabold text-gray-700 cursor-pointer flex flex-col leading-snug">
+                          <span className="text-gray-900 text-xs">Show in Ads Catalog landing page</span>
+                          <span className="text-[10px] text-gray-400 font-bold normal-case font-sans">This product will be instantly visible in the dedicated /ads-catalog campaign page.</span>
+                        </label>
                       </div>
 
                       <button

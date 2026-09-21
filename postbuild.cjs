@@ -114,6 +114,15 @@ function runPostBuild() {
   fs.writeFileSync(path.join(adminDir, 'index.html'), indexHtmlContent, 'utf8');
   fs.writeFileSync(path.join(distPath, 'admin.html'), indexHtmlContent, 'utf8');
   console.log('✅ Created permanent static route files for: /admin');
+
+  // 3. Generate physical directory and index.html for the Ads Catalog landing page
+  const adsCatalogDir = path.join(distPath, 'ads-catalog');
+  if (!fs.existsSync(adsCatalogDir)) {
+    fs.mkdirSync(adsCatalogDir, { recursive: true });
+  }
+  fs.writeFileSync(path.join(adsCatalogDir, 'index.html'), indexHtmlContent, 'utf8');
+  fs.writeFileSync(path.join(distPath, 'ads-catalog.html'), indexHtmlContent, 'utf8');
+  console.log('✅ Created permanent static route files for: /ads-catalog');
   
   console.log('--- Static Routing Generation Completed Successfully ---');
 }
