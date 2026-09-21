@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Phone,
   Mail,
@@ -39,7 +40,319 @@ import {
   saveOrderToFirestore
 } from "./lib/firebase";
 
+function ProductRouteWrapper({
+  productsList,
+  activeProduct,
+  setActiveProduct,
+  checkoutProduct,
+  setCheckoutProduct,
+  setLightboxImage,
+  setLightboxTitle,
+  pincodeInput,
+  setPincodeInput,
+  pincodeStatus,
+  setPincodeStatus,
+  handlePincodeCheck,
+  estimatedDate,
+  getWhatsAppOrderUrl,
+  handleOrderSuccess,
+  orderSuccess,
+  orderId,
+  orderedQty,
+  orderedTotal,
+  orderDetails,
+  resetOrderState,
+  formSectionRef,
+  scrollToCheckout,
+  setPromoToastMsg,
+  setShowPromoToast
+}: any) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (productsList.length > 0 && id) {
+      const matched = productsList.find((p) => p.id === id);
+      if (matched) {
+        setActiveProduct(matched);
+        setCheckoutProduct(matched);
+
+        if (id === "2-item-combo") {
+          setPromoToastMsg(`🎉 Special URL Offer Activated: ${matched.name}!`);
+          setShowPromoToast(true);
+          const t = setTimeout(() => setShowPromoToast(false), 5000);
+          return () => clearTimeout(t);
+        }
+      } else {
+        navigate("/", { replace: true });
+      }
+    }
+  }, [id, productsList]);
+
+  if (!checkoutProduct || checkoutProduct.id !== id) {
+    return (
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-20 flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <p className="text-gray-500 text-xs font-bold mt-4 animate-pulse">Loading Product Checkout Details...</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 md:py-10 flex flex-col gap-10">
+      <div className="w-full flex flex-col gap-8 animate-fade-in">
+        {orderSuccess && orderDetails ? (
+          <SuccessView
+            orderId={orderId}
+            quantity={orderedQty}
+            totalPrice={orderedTotal}
+            orderDetails={orderDetails}
+            onReset={() => {
+              resetOrderState();
+              setCheckoutProduct(null);
+              navigate("/");
+            }}
+          />
+        ) : (
+          <>
+            {/* Header / Breadcrumb navigation */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-150 p-5 rounded-3xl shadow-sm">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    setCheckoutProduct(null);
+                    navigate("/");
+                  }}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer border border-gray-200"
+                >
+                  ← Back to Home
+                </button>
+                <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
+                <button
+                  onClick={scrollToCheckout}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-blue-100"
+                >
+                  ORDER NOW
+                </button>
+                <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
+                <div>
+                  <span className="text-[10px] text-blue-600 font-extrabold uppercase tracking-widest block font-sans">SECURE CHECKOUT</span>
+                  <h2 className="text-gray-900 font-black text-lg tracking-tight leading-none mt-1">Cash on Delivery Order Page</h2>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-blue-700 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 font-bold text-xs">
+                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+                <span>Verified Doorstep Payment (COD)</span>
+              </div>
+            </div>
+
+            {/* Split Page: Left Product summary & Details, Right COD Form */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* LEFT: Product Summary & specs */}
+              <div className="lg:col-span-6 flex flex-col gap-6">
+                <div className="bg-white border border-gray-150 rounded-3xl p-6 shadow-sm flex flex-col gap-5">
+                  <div className="flex items-start gap-4">
+                    <div 
+                      onClick={() => {
+                        setLightboxImage(checkoutProduct.imageUrl);
+                        setLightboxTitle(checkoutProduct.name);
+                      }}
+                      className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-150 shrink-0 cursor-zoom-in group/chkimg"
+                      title="Click to view full screen (വലുതായി കാണാൻ ക്ലിക്ക് ചെയ്യുക)"
+                    >
+                      <img
+                        src={checkoutProduct.imageUrl}
+                        alt={checkoutProduct.name}
+                        className="w-full h-full object-cover group-hover/chkimg:scale-105 transition-transform duration-300"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-black/15 opacity-0 group-hover/chkimg:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-[9px] text-white font-extrabold tracking-wider bg-black/50 px-1.5 py-0.5 rounded uppercase">🔎 ZOOM</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="bg-blue-50 text-blue-700 text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wide">
+                        {checkoutProduct.tag}
+                      </span>
+                      <h3 className="text-gray-900 font-black text-base tracking-tight leading-snug mt-1.5">
+                        {checkoutProduct.name}
+                      </h3>
+                      <p className="text-xs text-blue-600 font-bold tracking-wide mt-1">
+                        ₹{checkoutProduct.discountedPrice}{" "}
+                        <span className="text-gray-400 line-through font-medium text-[11px] ml-1.5">
+                          ₹{checkoutProduct.originalPrice}
+                        </span>{" "}
+                        <span className="text-emerald-600 font-extrabold ml-1.5 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">
+                          Save {checkoutProduct.discountPercent}% OFF
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-4 flex flex-col gap-2">
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-wider">Product Description</h4>
+                    <p className="text-gray-600 text-xs leading-relaxed font-semibold">
+                      {checkoutProduct.description}
+                    </p>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-4 flex flex-col gap-2">
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-wider">Highlight Features</h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-bold text-gray-700">
+                      {checkoutProduct.features.map((feat: string, i: number) => (
+                        <li key={i} className="flex items-start gap-1.5">
+                          <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Specifications Block */}
+                <div className="bg-white border border-gray-150 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+                  <h4 className="text-xs font-black text-gray-900 uppercase tracking-wider border-b border-gray-100 pb-2">
+                    Product Technical Specifications
+                  </h4>
+                  <div className="flex flex-col gap-2.5">
+                    {Object.entries(checkoutProduct.specs).map(([key, val]: any, index) => (
+                      <div key={index} className="flex justify-between items-center text-xs py-1 border-b border-gray-50 last:border-none">
+                        <span className="text-gray-400 font-extrabold uppercase tracking-wide text-[10px]">{key}</span>
+                        <span className="text-gray-900 font-black text-right">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT: COD Checkout form */}
+              <div id="cod-checkout-container" className="lg:col-span-6">
+                <div ref={formSectionRef}>
+                  <CODForm
+                    product={checkoutProduct}
+                    onOrderSuccess={handleOrderSuccess}
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
+
+function AdminRouteWrapper({ productsList, setProductsList }: any) {
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === "ss2468") {
+      setIsAdminAuthenticated(true);
+      setPasswordError("");
+    } else {
+      setPasswordError("Incorrect Admin Password. Access Denied.");
+    }
+  };
+
+  if (!isAdminAuthenticated) {
+    return (
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-12 md:py-20 flex items-center justify-center min-h-[55vh]">
+        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-gray-100 overflow-hidden flex flex-col p-8 animate-fade-in">
+          <div className="flex flex-col items-center text-center gap-4">
+            <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl shadow-inner">
+              <Lock className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black tracking-tight text-gray-900 uppercase">Logistics Access Gate</h3>
+              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-1">Authorized personnel only</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleAdminLogin} className="mt-8 flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-black text-gray-500 uppercase tracking-wider">Secret Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoFocus
+                  placeholder="Enter admin password..."
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full bg-gray-50 hover:bg-gray-100/80 focus:bg-white border-2 border-gray-100 focus:border-blue-500 text-sm font-black py-3.5 px-4 rounded-xl transition-all outline-none text-gray-900"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {passwordError && (
+              <div className="bg-rose-50 border border-rose-100 p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-rose-800 animate-pulse">
+                <AlertCircle className="w-4.5 h-4.5 text-rose-600 shrink-0 mt-0.5" />
+                <p className="font-extrabold">{passwordError}</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPasswordInput("");
+                  setPasswordError("");
+                  navigate("/");
+                }}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-black py-3 rounded-xl transition-all cursor-pointer text-center"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-black py-3 rounded-xl transition-all shadow-md cursor-pointer text-center"
+              >
+                Unlock Portal
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 md:py-10 flex flex-col gap-10">
+      <AdminPanel
+        onBackToShop={() => {
+          setIsAdminAuthenticated(false);
+          setPasswordInput("");
+          navigate("/");
+        }}
+        productsList={productsList}
+        onProductsUpdate={setProductsList}
+      />
+    </main>
+  );
+}
+
 export default function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}
+
+function AppContent() {
+  const navigate = useNavigate();
   const [productsList, setProductsList] = useState<Product[]>(() => {
     const saved = localStorage.getItem("smart_supply_products");
     return saved ? JSON.parse(saved) : PRODUCTS;
@@ -143,103 +456,7 @@ export default function App() {
     }
   }, [activeProduct]);
 
-  // 1. Read and initialize active product and checkout product from URL path or query parameter
-  useEffect(() => {
-    if (productsList.length > 0) {
-      let matched: Product | undefined;
 
-      // First try path routing (e.g., /products/2-item-combo)
-      const path = window.location.pathname;
-      let isProductRoute = false;
-      if (path.startsWith("/products/")) {
-        isProductRoute = true;
-        const slug = path.split("/products/")[1];
-        matched = productsList.find((p) => p.id === slug);
-      }
-
-      // If not matched by path, check query param (e.g., ?product=2-item-combo)
-      let isQueryRoute = false;
-      if (!matched) {
-        const params = new URLSearchParams(window.location.search);
-        const prodId = params.get("product");
-        if (prodId) {
-          isQueryRoute = true;
-          matched = productsList.find((p) => p.id === prodId);
-        }
-      }
-
-      if (matched) {
-        setActiveProduct(matched);
-        setCheckoutProduct(matched);
-        
-        // Show premium promotional toast
-        setPromoToastMsg(`🎉 Special URL Offer Activated: ${matched.name}!`);
-        setShowPromoToast(true);
-        const toastTimer = setTimeout(() => setShowPromoToast(false), 5000);
-
-        // Smoothest automatic scroll to the COD form for optimized conversion
-        const scrollTimer = setTimeout(() => {
-          scrollToCheckout();
-        }, 800);
-
-        return () => {
-          clearTimeout(toastTimer);
-          clearTimeout(scrollTimer);
-        };
-      } else if (isProductRoute || isQueryRoute) {
-        // Dynamic route or query slug is invalid - gracefully redirect to home page
-        window.history.replaceState({}, "", "/");
-        setCheckoutProduct(null);
-      }
-    }
-  }, [productsList]);
-
-  // 2. Synchronize URL query parameters and dynamic paths with active selection changes
-  useEffect(() => {
-    if (checkoutProduct) {
-      const currentPath = window.location.pathname;
-      const targetPath = `/products/${checkoutProduct.id}`;
-      if (currentPath !== targetPath) {
-        window.history.pushState({}, "", targetPath);
-      }
-    } else {
-      const currentPath = window.location.pathname;
-      if (currentPath !== "/") {
-        window.history.pushState({}, "", "/");
-      }
-    }
-  }, [checkoutProduct]);
-
-  // 3. Handle browser back/forward buttons smoothly (popstate navigation)
-  useEffect(() => {
-    const handlePopState = () => {
-      if (productsList.length > 0) {
-        let matched: Product | undefined;
-        const path = window.location.pathname;
-        if (path.startsWith("/products/")) {
-          const slug = path.split("/products/")[1];
-          matched = productsList.find((p) => p.id === slug);
-        }
-
-        if (!matched) {
-          const params = new URLSearchParams(window.location.search);
-          const prodId = params.get("product");
-          if (prodId) {
-            matched = productsList.find((p) => p.id === prodId);
-          }
-        }
-
-        if (matched) {
-          setActiveProduct(matched);
-          setCheckoutProduct(matched);
-        } else {
-          setCheckoutProduct(null);
-        }
-      }
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [productsList]);
 
   // Handle PIN-code check action
   const handlePincodeCheck = (val: string) => {
@@ -376,105 +593,6 @@ export default function App() {
     return `https://wa.me/919946597203?text=${text}`;
   };
 
-  const handleAdminLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordInput === "ss2468") {
-      setIsAdminAuthenticated(true);
-      setPasswordError("");
-    } else {
-      setPasswordError("Incorrect Admin Password. Access Denied.");
-    }
-  };
-
-  if (isAdminMode) {
-    if (!isAdminAuthenticated) {
-      return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 select-none font-sans">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col p-8">
-            <div className="flex flex-col items-center text-center gap-4">
-              <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl shadow-inner">
-                <Lock className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black tracking-tight text-gray-900 uppercase">Logistics Access Gate</h3>
-                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-1">Authorized personnel only</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleAdminLogin} className="mt-8 flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-black text-gray-500 uppercase tracking-wider">Secret Password</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    placeholder="Enter admin password..."
-                    value={passwordInput}
-                    onChange={(e) => {
-                      setPasswordInput(e.target.value);
-                      if (passwordError) setPasswordError("");
-                    }}
-                    className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {passwordError && (
-                <div className="bg-rose-50 border border-rose-100 p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-rose-800">
-                  <AlertCircle className="w-4.5 h-4.5 text-rose-600 shrink-0 mt-0.5" />
-                  <p className="font-extrabold">{passwordError}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAdminMode(false);
-                    setPasswordInput("");
-                    setPasswordError("");
-                  }}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-black py-3 rounded-xl transition-all cursor-pointer text-center"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-black py-3 rounded-xl transition-all shadow-md cursor-pointer text-center"
-                >
-                  Unlock Portal
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <AdminPanel
-        onBackToShop={() => {
-          setIsAdminMode(false);
-          setIsAdminAuthenticated(false);
-          setPasswordInput("");
-        }}
-        productsList={productsList}
-        onProductsUpdate={setProductsList}
-      />
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased selection:bg-blue-500 selection:text-white relative">
       {/* Universal Sticky / Float Top Header */}
@@ -499,152 +617,31 @@ export default function App() {
         </div>
       )}
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 md:py-10 flex flex-col gap-10">
-        {orderSuccess && orderDetails ? (
-          <SuccessView
-            orderId={orderId}
-            quantity={orderedQty}
-            totalPrice={orderedTotal}
-            orderDetails={orderDetails}
-            onReset={() => {
-              resetOrderState();
-              setCheckoutProduct(null);
-            }}
-          />
-        ) : checkoutProduct ? (
-          <div className="w-full flex flex-col gap-8 animate-fade-in">
-            {/* Header / Breadcrumb navigation */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-150 p-5 rounded-3xl shadow-sm">
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => {
-                    setCheckoutProduct(null);
-                    const params = new URLSearchParams(window.location.search);
-                    params.delete("product");
-                    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
-                    window.history.pushState({}, "", newUrl);
-                  }}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer border border-gray-200"
-                >
-                  ← Back to Home
-                </button>
-                <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
-                <button
-                  onClick={() => scrollToCheckout()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-blue-100"
-                >
-                  ORDER NOW
-                </button>
-                <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
+      <Routes>
+        <Route path="/" element={
+          <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 md:py-10 flex flex-col gap-10 animate-fade-in">
+            {/* Urgency Announcement Bar / Slider Hero */}
+            <div className="w-full bg-gradient-to-r from-rose-600 to-amber-500 text-white rounded-3xl p-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden select-none">
+              {/* Background graphic flare */}
+              <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 skew-x-12 pointer-events-none transform translate-x-16" />
+              <div className="flex items-center gap-4 text-center md:text-left shrink-0">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center font-black animate-pulse shadow-md">
+                  ⏱️
+                </div>
                 <div>
-                  <span className="text-[10px] text-blue-600 font-extrabold uppercase tracking-widest block font-sans">SECURE CHECKOUT</span>
-                  <h2 className="text-gray-900 font-black text-lg tracking-tight leading-none mt-1">Cash on Delivery Order Page</h2>
+                  <span className="text-[9px] bg-white/20 text-white font-black tracking-widest px-2 py-0.5 rounded-full uppercase">💥 SPECIAL MONTHLY OFFER 💥</span>
+                  <h3 className="font-black text-lg md:text-xl tracking-tight leading-none mt-1">ഈ മാസത്തെ ഏറ്റവും വലിയ വിലക്കുറവ്! (Special Monthly Offer)</h3>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-blue-700 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 font-bold text-xs">
-                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>Verified Doorstep Payment (COD)</span>
+              <div className="flex items-center gap-2 bg-black/20 px-5 py-3 rounded-2xl border border-white/10 shadow-inner">
+                <Clock className="w-4.5 h-4.5 text-amber-300 animate-spin" />
+                <span className="text-xs font-black uppercase tracking-wider text-amber-100">Offer Ends In:</span>
+                <span className="text-sm font-black tracking-tight text-white font-mono bg-black/40 px-2 py-1 rounded-lg">
+                  {minutes.toString().padStart(2, "0")}:{seconds.toString().padStart(2, "0")}
+                </span>
               </div>
             </div>
 
-            {/* Split Page: Left Product summary & Details, Right COD Form */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* LEFT: Product Summary & specs */}
-              <div className="lg:col-span-6 flex flex-col gap-6">
-                <div className="bg-white border border-gray-150 rounded-3xl p-6 shadow-sm flex flex-col gap-5">
-                  <div className="flex items-start gap-4">
-                    <div 
-                      onClick={() => {
-                        setLightboxImage(checkoutProduct.imageUrl);
-                        setLightboxTitle(checkoutProduct.name);
-                      }}
-                      className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-150 shrink-0 cursor-zoom-in group/chkimg"
-                      title="Click to view full screen (വലുതായി കാണാൻ ക്ലിക്ക് ചെയ്യുക)"
-                    >
-                      <img
-                        src={checkoutProduct.imageUrl}
-                        alt={checkoutProduct.name}
-                        className="w-full h-full object-cover group-hover/chkimg:scale-105 transition-transform duration-300"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute inset-0 bg-black/15 opacity-0 group-hover/chkimg:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-[9px] text-white font-extrabold tracking-wider bg-black/50 px-1.5 py-0.5 rounded uppercase">🔎 ZOOM</span>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="bg-blue-50 text-blue-700 text-[9px] font-black uppercase px-2 py-0.5 rounded tracking-wide">
-                        {checkoutProduct.tag}
-                      </span>
-                      <h3 className="text-gray-900 font-black text-base tracking-tight leading-snug mt-1.5">
-                        {checkoutProduct.name}
-                      </h3>
-                      <p className="text-gray-500 text-xs mt-1 leading-relaxed font-semibold">
-                        {checkoutProduct.tagline}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-4">
-                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block mb-2">Checkout Price Summary</span>
-                    <div className="bg-gray-50/60 border border-gray-100 rounded-2xl p-4 flex flex-col gap-2 text-xs">
-                      <div className="flex justify-between text-gray-500">
-                        <span>Original Price:</span>
-                        <span className="line-through">₹{checkoutProduct.originalPrice}</span>
-                      </div>
-                      <div className="flex justify-between text-rose-600 font-bold">
-                        <span>Special Promo Discount:</span>
-                        <span>- ₹{checkoutProduct.originalPrice - checkoutProduct.discountedPrice}</span>
-                      </div>
-                      <div className="flex justify-between text-blue-600 font-bold">
-                        <span>Delivery Charges (100% Free):</span>
-                        <span>₹0</span>
-                      </div>
-                      <div className="h-[1px] bg-gray-200/60 my-1" />
-                      <div className="flex justify-between text-gray-900 font-black text-base">
-                        <span>Total Payable at Doorstep:</span>
-                        <span className="text-blue-600">₹{checkoutProduct.discountedPrice}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-4 flex flex-col gap-3">
-                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Product Features</span>
-                    <ul className="flex flex-col gap-2 text-[11px] text-gray-600 font-medium">
-                      {checkoutProduct.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <div className="w-4 h-4 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                            ✓
-                          </div>
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Secure purchase assurances */}
-                <div className="bg-amber-50/50 border border-amber-200/40 rounded-3xl p-5 flex items-start gap-3">
-                  <Gift className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                  <div className="text-xs">
-                    <h4 className="font-black text-amber-900">7-Day Replacement Policy Guarantee</h4>
-                    <p className="text-amber-800 leading-relaxed mt-1 font-medium">
-                      If you receive any damaged, broken, or defective piece, simply contact our WhatsApp support line and we will arrange a replacement at your doorstep within 48 hours for absolutely free!
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* RIGHT: COD Form */}
-              <div className="lg:col-span-6">
-                <CODForm
-                  product={checkoutProduct}
-                  onOrderSuccess={handleOrderSuccess}
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
             {/* Store Introduction Heading */}
             <div className="w-full text-center flex flex-col items-center gap-2.5 mt-2">
               <h2 className="text-gray-950 font-black text-3xl md:text-4xl tracking-tight leading-tight max-w-2xl">
@@ -656,27 +653,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* Notification alert on card selection */}
-            {justSelected && (
-              <div className="w-full max-w-3xl mx-auto bg-blue-50 border-2 border-blue-500/20 text-blue-950 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md animate-pulse">
-                <div className="flex items-center gap-3 text-center sm:text-left">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-black text-sm shrink-0">
-                    ✓
-                  </div>
-                  <div>
-                    <p className="text-sm font-black">Selected for COD: {activeProduct.name}</p>
-                    <p className="text-xs text-blue-700 font-bold">We loaded this product into your Cash on Delivery form below!</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => scrollToCheckout()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md cursor-pointer whitespace-nowrap"
-                >
-                  Go to Checkout Form ↓
-                </button>
-              </div>
-            )}
-
             {/* 3D Flip Card Catalog Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-1">
               {productsList.map((prod) => (
@@ -687,6 +663,7 @@ export default function App() {
                   onSelect={() => {
                     setActiveProduct(prod);
                     setCheckoutProduct(prod);
+                    navigate(`/products/${prod.id}`);
                   }}
                   onImageClick={(url, name) => {
                     setLightboxImage(url);
@@ -752,14 +729,51 @@ export default function App() {
                 </div>
               </div>
             </div>
-          </>
-        )}
 
-        {/* Global Store Trust Badges */}
-        <div className="mt-6">
-          <TrustBadges />
-        </div>
-      </main>
+            {/* Global Store Trust Badges */}
+            <div className="mt-6">
+              <TrustBadges />
+            </div>
+          </main>
+        } />
+
+        <Route path="/products/:id" element={
+          <ProductRouteWrapper
+            productsList={productsList}
+            activeProduct={activeProduct}
+            setActiveProduct={setActiveProduct}
+            checkoutProduct={checkoutProduct}
+            setCheckoutProduct={setCheckoutProduct}
+            setLightboxImage={setLightboxImage}
+            setLightboxTitle={setLightboxTitle}
+            pincodeInput={pincodeInput}
+            setPincodeInput={setPincodeInput}
+            pincodeStatus={pincodeStatus}
+            setPincodeStatus={setPincodeStatus}
+            handlePincodeCheck={handlePincodeCheck}
+            estimatedDate={estimatedDate}
+            getWhatsAppOrderUrl={getWhatsAppOrderUrl}
+            handleOrderSuccess={handleOrderSuccess}
+            orderSuccess={orderSuccess}
+            orderId={orderId}
+            orderedQty={orderedQty}
+            orderedTotal={orderedTotal}
+            orderDetails={orderDetails}
+            resetOrderState={resetOrderState}
+            formSectionRef={formSectionRef}
+            scrollToCheckout={scrollToCheckout}
+            setPromoToastMsg={setPromoToastMsg}
+            setShowPromoToast={setShowPromoToast}
+          />
+        } />
+
+        <Route path="/admin" element={
+          <AdminRouteWrapper
+            productsList={productsList}
+            setProductsList={setProductsList}
+          />
+        } />
+      </Routes>
 
       {/* Trust & Details Footer */}
       <footer className="w-full bg-gray-900 text-gray-400 py-10 px-4 mt-16 border-t border-gray-800">
