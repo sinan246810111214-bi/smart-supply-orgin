@@ -21,7 +21,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Bundle incentives calculations
+  // Bundle incentives calculations: ₹18 discount per unit for 2 units, and ₹17 discount per unit for 3 units.
   const getBundleDetails = () => {
     const basePrice = product.discountedPrice;
     if (quantity === 1) {
@@ -32,20 +32,20 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
         gift: null
       };
     } else if (quantity === 2) {
-      const discount = product.id === "chopper-12in1" ? 100 : 50;
+      const discount = 36; // ₹18 off per unit -> 2 * 18 = 36
       return {
-        unitPrice: Math.round((basePrice * 2 - discount) / 2),
-        totalPrice: basePrice * 2 - discount,
+        unitPrice: basePrice - 18,
+        totalPrice: (basePrice - 18) * 2,
         discount,
-        gift: "✨ Free Double-Sided Scrub Sponge"
+        gift: null
       };
     } else {
-      const discount = product.id === "chopper-12in1" ? 300 : product.id === "water-pump" ? 200 : 150;
+      const discount = 51; // ₹17 off per unit -> 3 * 17 = 51
       return {
-        unitPrice: Math.round((basePrice * 3 - discount) / 3),
-        totalPrice: basePrice * 3 - discount,
+        unitPrice: basePrice - 17,
+        totalPrice: (basePrice - 17) * 3,
         discount,
-        gift: "🎁 Free Premium Stainless Steel Peeler + Scrub"
+        gift: null
       };
     }
   };
@@ -197,6 +197,80 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
+        {/* Select Quantity Segmented Control */}
+        <div className="flex flex-col gap-3">
+          <label className="text-gray-950 font-black text-sm flex items-center gap-1.5 border-b border-gray-100 pb-2">
+            Select Quantity (ആവശ്യമായ എണ്ണം തിരഞ്ഞെടുക്കുക)
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* 1 Unit */}
+            <button
+              type="button"
+              onClick={() => setQuantity(1)}
+              className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative text-center ${
+                quantity === 1
+                  ? "border-blue-600 bg-blue-50/20 text-blue-900 ring-2 ring-blue-500/10"
+                  : "border-gray-200 bg-white hover:border-gray-300 text-gray-700"
+              }`}
+            >
+              <span className="text-xs font-black uppercase tracking-wider">1 Unit / 1 എണ്ണം</span>
+              <span className="text-base font-black text-blue-600 mt-1">₹{product.discountedPrice}</span>
+              <span className="text-[9px] text-gray-400 font-bold mt-0.5">Standard Pack</span>
+              {quantity === 1 && (
+                <span className="absolute -top-2 -right-2 bg-blue-600 text-white p-1 rounded-full text-[8px]">
+                  <Check className="w-3 h-3 stroke-[4px]" />
+                </span>
+              )}
+            </button>
+
+            {/* 2 Units */}
+            <button
+              type="button"
+              onClick={() => setQuantity(2)}
+              className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative text-center ${
+                quantity === 2
+                  ? "border-blue-600 bg-blue-50/20 text-blue-900 ring-2 ring-blue-500/10"
+                  : "border-gray-200 bg-white hover:border-gray-300 text-gray-700"
+              }`}
+            >
+              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-rose-600 text-white font-black text-[8px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Popular Pack
+              </div>
+              <span className="text-xs font-black uppercase tracking-wider mt-1">2 Units / 2 എണ്ണം</span>
+              <span className="text-base font-black text-blue-600 mt-1">₹{(product.discountedPrice - 18) * 2}</span>
+              <span className="text-[9px] text-emerald-600 font-extrabold mt-0.5">₹18 Off per Unit! (Save ₹36)</span>
+              {quantity === 2 && (
+                <span className="absolute -top-2 -right-2 bg-blue-600 text-white p-1 rounded-full text-[8px]">
+                  <Check className="w-3 h-3 stroke-[4px]" />
+                </span>
+              )}
+            </button>
+
+            {/* 3 Units */}
+            <button
+              type="button"
+              onClick={() => setQuantity(3)}
+              className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative text-center ${
+                quantity === 3
+                  ? "border-blue-600 bg-blue-50/20 text-blue-900 ring-2 ring-blue-500/10"
+                  : "border-gray-200 bg-white hover:border-gray-300 text-gray-700"
+              }`}
+            >
+              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-amber-500 text-white font-black text-[8px] px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
+                Max Value Pack
+              </div>
+              <span className="text-xs font-black uppercase tracking-wider mt-1">3 Units / 3 എണ്ണം</span>
+              <span className="text-base font-black text-blue-600 mt-1">₹{(product.discountedPrice - 17) * 3}</span>
+              <span className="text-[9px] text-emerald-600 font-extrabold mt-0.5">₹17 Off per Unit! (Save ₹51)</span>
+              {quantity === 3 && (
+                <span className="absolute -top-2 -right-2 bg-blue-600 text-white p-1 rounded-full text-[8px]">
+                  <Check className="w-3 h-3 stroke-[4px]" />
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
         {/* Delivery Address Header */}
         <div className="flex flex-col gap-4">
           <label className="text-gray-950 font-black text-sm flex items-center gap-1.5 border-b border-gray-100 pb-2">

@@ -925,13 +925,42 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
                     <h2 className="text-lg font-black tracking-tight text-gray-900">📦 Catalog Storage Manager</h2>
                     <p className="text-xs text-gray-500 font-semibold mt-0.5">Add, Edit, and Delete products dynamically inside your system.</p>
                   </div>
-                  <button
-                    onClick={() => setIsAddingProduct(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-md shadow-blue-100 flex items-center gap-1.5 transition-all self-stretch sm:self-auto justify-center cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Create New Product</span>
-                  </button>
+                  <div className="flex items-center gap-2 self-stretch sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (window.confirm("Are you sure you want to reset all products back to the default list? This will put the Mini Squeeze Mop at the very top and enable it for the Ads Catalog page.")) {
+                          try {
+                            // Clear existing products from Firestore
+                            for (const p of productsList) {
+                              await deleteProductFromFirestore(p.id);
+                            }
+                            // Re-import the fresh PRODUCTS list from data.ts
+                            const { PRODUCTS } = await import("../data");
+                            for (const p of PRODUCTS) {
+                              await saveProductToFirestore(p);
+                            }
+                            onProductsUpdate(PRODUCTS);
+                            alert("Products successfully reset to default layout with Mini Mop at the top!");
+                          } catch (err: any) {
+                            console.error("Error resetting defaults:", err);
+                            alert("Failed to reset. Please try again.");
+                          }
+                        }
+                      }}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-black px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer border border-gray-200"
+                    >
+                      <RotateCcw className="w-4 h-4 text-gray-600" />
+                      <span>Reset to Defaults</span>
+                    </button>
+                    <button
+                      onClick={() => setIsAddingProduct(true)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-md shadow-blue-100 flex items-center gap-1.5 transition-all justify-center cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Create New Product</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="relative">

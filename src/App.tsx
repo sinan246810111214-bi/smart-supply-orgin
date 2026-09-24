@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import {
   Phone,
   Mail,
@@ -354,6 +354,7 @@ export default function App() {
 
 function AppContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [productsList, setProductsList] = useState<Product[]>(() => {
     const saved = localStorage.getItem("smart_supply_products");
     return saved ? JSON.parse(saved) : PRODUCTS;
@@ -781,8 +782,9 @@ function AppContent() {
       </Routes>
 
       {/* Trust & Details Footer */}
-      <footer className="w-full bg-gray-900 text-gray-400 py-10 px-4 mt-16 border-t border-gray-800">
-        <div className="max-w-6xl mx-auto flex flex-col gap-8">
+      {location.pathname !== "/ads-catalog" && (
+        <footer className="w-full bg-gray-900 text-gray-400 py-10 px-4 mt-16 border-t border-gray-800">
+          <div className="max-w-6xl mx-auto flex flex-col gap-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-b border-gray-800 pb-8">
             {/* Column 1 */}
             <div className="flex flex-col gap-3">
@@ -854,6 +856,7 @@ function AppContent() {
           </div>
         </div>
       </footer>
+      )}
 
       {/* Lightbox Fullscreen Image Modal */}
       {lightboxImage && (

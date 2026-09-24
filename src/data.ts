@@ -2,6 +2,38 @@ import { Product, Review } from "./types";
 
 export const PRODUCTS: Product[] = [
   {
+    id: "desktop-mop",
+    name: "Mini Foldable Self-Squeeze Desktop Mop",
+    tagline: "Squeeze with a Single Pull—Wipe Liquid & Coffee Spills Instantly!",
+    description: "Meet the smartest tabletop cleaner ever created. This ultra-compact mini mop features a highly absorbent eco-sponge head that locks in liquids, oil, and dust instantly. With its hands-free self-squeezing mechanism, you simply fold the handle to wring out the water entirely, keeping your hands perfectly dry.",
+    originalPrice: 799,
+    discountedPrice: 249,
+    discountPercent: 69,
+    imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop&q=80"
+    ],
+    features: [
+      "100% Hands-Free Squeezing—Just Pull the Lever to Wring",
+      "Ultra-Absorbent Biodegradable Sponge Head",
+      "Compact, Foldable, and Lightweight Design",
+      "Cleans Computer Desks, Kitchen Platforms, Window Tracks, and Mirrors",
+      "Works Dry (for Dust) or Wet (for Liquid/Oil Spills)",
+      "Stores Upright—Saves Countertop Space"
+    ],
+    tag: "Hot Release",
+    rating: 4.7,
+    reviewCount: 740,
+    specs: {
+      "Material": "Premium Eco-Friendly ABS Body, Absorbent PVA Sponge Head",
+      "Weight": "150 Grams",
+      "Size": "29.5 cm x 15.5 cm",
+      "Mechanism": "Dual-Folding Self-Squeeze",
+      "Package Includes": "1 x Mini Squeeze Mop Handle, 1 x Premium PVA Sponge Head"
+    },
+    isAdsCatalog: true
+  },
+  {
     id: "knife-sharpener",
     name: "3-Stage Professional Knife Sharpener",
     tagline: "Restore Dull Kitchen Knives to Razor-Sharpness in Seconds!",
@@ -32,7 +64,7 @@ export const PRODUCTS: Product[] = [
       "Package Includes": "1 x 3-Stage Knife Sharpener",
       "Warranty": "6 Months Smart Supply Replacement Warranty"
     },
-    isAdsCatalog: true
+    isAdsCatalog: false
   },
   {
     id: "peeler-4in1",
@@ -65,72 +97,10 @@ export const PRODUCTS: Product[] = [
       "Dimensions": "18.5 cm x 7.5 cm",
       "Package Includes": "1 x 4-in-1 Peeler"
     },
-    isAdsCatalog: true
+    isAdsCatalog: false
   },
   {
     id: "shoe-brush",
-    name: "Multifunctional Liquid Shoe Cleaning Brush with Soap Dispenser",
-    tagline: "Dispense Cleaning Soap On-Demand for Sparkling Clean Shoes!",
-    description: "Stop wasting expensive cleaning gels! This innovative cleaning brush features an integrated liquid dispenser compartment. Simply fill it with laundry detergent or liquid soap, and press the soft silicone button to release lather exactly where you need it. High-density, ultra-soft bristles clean effectively without scratching delicate fabrics.",
-    originalPrice: 699,
-    discountedPrice: 150,
-    discountPercent: 79,
-    imageUrl: "https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800&auto=format&fit=crop&q=80",
-    gallery: [
-      "https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&auto=format&fit=crop&q=80"
-    ],
-    features: [
-      "Built-in 50ml Refillable Soap Storage Reservoir",
-      "One-Touch Press Dispensation Mechanism",
-      "High-Density Soft, Sturdy Bristles—No Fiber Damage",
-      "Ergonomic Non-Slip Grip Handle",
-      "Ideal for Shoes, Clothes, Sinks, Bathrooms, and Kitchen Corners",
-      "Handy Hanging String for Quick Air-Drying"
-    ],
-    tag: "Trending",
-    rating: 4.6,
-    reviewCount: 1120,
-    specs: {
-      "Material": "Eco-Friendly ABS Plastic, Micro-Fiber Bristles",
-      "Capacity": "50 ml Soap Reservoir",
-      "Bristle Strength": "Soft-Medium (Scratch-Safe)",
-      "Package Includes": "1 x Soap-Dispensing Cleaning Brush"
-    }
-  },
-  {
-    id: "desktop-mop",
-    name: "Mini Foldable Self-Squeeze Desktop Mop",
-    tagline: "Squeeze with a Single Pull—Wipe Liquid & Coffee Spills Instantly!",
-    description: "Meet the smartest tabletop cleaner ever created. This ultra-compact mini mop features a highly absorbent eco-sponge head that locks in liquids, oil, and dust instantly. With its hands-free self-squeezing mechanism, you simply fold the handle to wring out the water entirely, keeping your hands perfectly dry.",
-    originalPrice: 799,
-    discountedPrice: 249,
-    discountPercent: 69,
-    imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop&q=80",
-    gallery: [
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop&q=80"
-    ],
-    features: [
-      "100% Hands-Free Squeezing—Just Pull the Lever to Wring",
-      "Ultra-Absorbent Biodegradable Sponge Head",
-      "Compact, Foldable, and Lightweight Design",
-      "Cleans Computer Desks, Kitchen Platforms, Window Tracks, and Mirrors",
-      "Works Dry (for Dust) or Wet (for Liquid/Oil Spills)",
-      "Stores Upright—Saves Countertop Space"
-    ],
-    tag: "Hot Release",
-    rating: 4.7,
-    reviewCount: 740,
-    specs: {
-      "Material": "Premium Eco-Friendly ABS Body, Absorbent PVA Sponge Head",
-      "Weight": "150 Grams",
-      "Size": "29.5 cm x 15.5 cm",
-      "Mechanism": "Dual-Folding Self-Squeeze",
-      "Package Includes": "1 x Mini Squeeze Mop Handle, 1 x Premium PVA Sponge Head"
-    }
-  },
-  {
-    id: "bottle-brush",
     name: "Silicone Bottle Cleaning Brush",
     tagline: "360° Deep-Cleaning Soft Silicone Bristles That Reach Every Bottom!",
     description: "Get rid of nasty odor-causing bacteria in baby bottles, thermo-flasks, and narrow mugs. Made of premium, food-grade silicone, this flexible brush reaches deep into tight spaces without causing any scratches. Unlike ordinary sponges, it dries in minutes, doesn't absorb bad smells, and lasts 10x longer.",

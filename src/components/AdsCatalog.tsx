@@ -60,7 +60,14 @@ export default function AdsCatalog({ productsList: initialProductsList }: AdsCat
   const adsProducts = productsList.filter((p) => p.isAdsCatalog === true);
   
   // Dynamic fallback so the page never looks empty
-  const activeProducts = adsProducts.length > 0 ? adsProducts : productsList.slice(0, 3);
+  const activeProductsRaw = adsProducts.length > 0 ? adsProducts : productsList.slice(0, 3);
+
+  // ALWAYS sort the "Mini Squeeze Mop" (id: "desktop-mop") to the front (top) of the ads page so it is placed first
+  const activeProducts = [...activeProductsRaw].sort((a, b) => {
+    if (a.id === "desktop-mop") return -1;
+    if (b.id === "desktop-mop") return 1;
+    return 0;
+  });
 
   // Auto-set the active checkout target product on mount or when product list changes
   useEffect(() => {
