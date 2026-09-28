@@ -515,7 +515,9 @@ function AppContent() {
         quantity: quantity,
         totalPrice: total,
         status: "Pending" as const,
-        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+        isNew: true,
+        createdAt: Date.now()
       };
       saveOrderToFirestore(newOrder).catch((err) => console.error("Error saving order to Firestore:", err));
     } catch (err) {

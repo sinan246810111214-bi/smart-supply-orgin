@@ -70,6 +70,7 @@ interface AdminPanelProps {
 export default function AdminPanel({ onBackToShop, productsList, onProductsUpdate }: AdminPanelProps) {
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<"dashboard" | "products" | "orders" | "customers" | "inventory" | "labels">("dashboard");
+  const [orderSubTab, setOrderSubTab] = useState<"new" | "processed">("new");
 
   // Local state for CRUD operations
   const [orders, setOrders] = useState<Order[]>([]);
@@ -515,9 +516,12 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
     const filteredOrders = orders.filter((o) => {
       const matchesSearch = o.name.toLowerCase().includes(orderSearch.toLowerCase()) ||
         o.phone.includes(orderSearch) ||
-        o.id.toLowerCase().includes(orderSearch.toLowerCase());
+        o.id.toLowerCase().includes(orderSearch.toLowerCase()) ||
+        o.productName.toLowerCase().includes(orderSearch.toLowerCase());
       const matchesFilter = orderFilterStatus === "all" || o.status === orderFilterStatus;
-      return matchesSearch && matchesFilter;
+      const isNewOrder = o.isNew !== false;
+      const matchesSubTab = orderSubTab === "new" ? isNewOrder : !isNewOrder;
+      return matchesSearch && matchesFilter && matchesSubTab;
     });
 
     const allFilteredIds = filteredOrders.map((o) => o.id);
@@ -545,9 +549,28 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
 
   const labelPages = chunkSelectedOrders();
 
+  // Helper to mark printed or downloaded orders as processed (isNew: false)
+  const markSelectedOrdersAsProcessed = async (selectedIds: string[]) => {
+    if (selectedIds.length === 0) return;
+    try {
+      // Loop over selectedIds and save them to Firestore with isNew = false
+      for (const id of selectedIds) {
+        const found = orders.find((o) => o.id === id);
+        if (found) {
+          const updated = { ...found, isNew: false };
+          await saveOrderToFirestore(updated);
+        }
+      }
+      setSelectedOrderIds([]); // Clear selection after processing
+    } catch (err) {
+      console.error("Error marking selected orders as processed:", err);
+    }
+  };
+
   // Print function
   const triggerPrint = () => {
     window.print();
+    markSelectedOrdersAsProcessed(selectedOrderIds);
   };
 
   // Modern Client-Side Vector PDF Generator using jsPDF (works inside sandboxed iframes)
@@ -686,6 +709,7 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
     });
 
     doc.save(`Shipping-Labels-${new Date().toISOString().slice(0,10)}.pdf`);
+    markSelectedOrdersAsProcessed(selectedOrderIds);
   };
 
   // Dashboard calculations
@@ -707,7 +731,9 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
       o.id.toLowerCase().includes(orderSearch.toLowerCase()) ||
       o.productName.toLowerCase().includes(orderSearch.toLowerCase());
     const matchesStatus = orderFilterStatus === "all" || o.status === orderFilterStatus;
-    return matchesSearch && matchesStatus;
+    const isNewOrder = o.isNew !== false;
+    const matchesSubTab = orderSubTab === "new" ? isNewOrder : !isNewOrder;
+    return matchesSearch && matchesStatus && matchesSubTab;
   });
 
   const filteredCustomers = customers.filter((c) =>
@@ -1392,9 +1418,41 @@ export default function AdminPanel({ onBackToShop, productsList, onProductsUpdat
           {activeTab === "orders" && (
             <div className="flex flex-col gap-6 animate-fade-in">
               <div className="bg-white border border-gray-150 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
-                <div>
-                  <h2 className="text-lg font-black tracking-tight text-gray-900">📋 Dispatch Shipping Ledger</h2>
-                  <p className="text-xs text-gray-500 font-semibold mt-0.5">Check COD order queues, select rows, and bulk print exact A4 shipping manifests.</p>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h2 className="text-lg font-black tracking-tight text-gray-900">📋 Dispatch Shipping Ledger</h2>
+                    <p className="text-xs text-gray-500 font-semibold mt-0.5">Check COD order queues, select rows, and bulk print exact A4 shipping manifests.</p>
+                  </div>
+
+                  {/* Sub Tab Navigation */}
+                  <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl shrink-0 self-stretch sm:self-auto justify-center">
+                    <button
+                      onClick={() => { setOrderSubTab("new"); setSelectedOrderIds([]); }}
+                      className={`px-4 py-2.5 rounded-xl font-black text-xs transition-all flex items-center gap-2 cursor-pointer leading-none ${
+                        orderSubTab === "new"
+                          ? "bg-white text-blue-600 shadow-sm border border-gray-250/30"
+                          : "text-gray-500 hover:text-gray-900"
+                      }`}
+                    >
+                      <span>🆕 New Orders</span>
+                      <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-[10px] font-black">
+                        {orders.filter(o => o.isNew !== false).length}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => { setOrderSubTab("processed"); setSelectedOrderIds([]); }}
+                      className={`px-4 py-2.5 rounded-xl font-black text-xs transition-all flex items-center gap-2 cursor-pointer leading-none ${
+                        orderSubTab === "processed"
+                          ? "bg-white text-blue-600 shadow-sm border border-gray-250/30"
+                          : "text-gray-500 hover:text-gray-900"
+                      }`}
+                    >
+                      <span>📁 Processed</span>
+                      <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-[10px] font-black">
+                        {orders.filter(o => o.isNew === false).length}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">

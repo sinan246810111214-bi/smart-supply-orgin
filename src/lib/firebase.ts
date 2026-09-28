@@ -26,6 +26,8 @@ export interface Order {
   totalPrice: number;
   status: "Pending" | "Shipped" | "Delivered" | "Cancelled";
   timestamp: string;
+  isNew?: boolean;
+  createdAt?: number;
 }
 
 // Initialize Firebase
@@ -157,8 +159,15 @@ export function subscribeToOrders(callback: (orders: Order[]) => void) {
     snapshot.forEach((doc) => {
       ordersList.push({ id: doc.id, ...doc.data() } as Order);
     });
-    // Sort by timestamp or parse string to sort newest first
-    ordersList.sort((a, b) => b.id.localeCompare(a.id));
+    // Sort by createdAt descending, fallback to id lexicographical newest first
+    ordersList.sort((a, b) => {
+      const timeA = a.createdAt || 0;
+      const timeB = b.createdAt || 0;
+      if (timeA !== timeB) {
+        return timeB - timeA;
+      }
+      return b.id.localeCompare(a.id);
+    });
     callback(ordersList);
   }, (error) => {
     handleFirestoreError(error, OperationType.LIST, path);

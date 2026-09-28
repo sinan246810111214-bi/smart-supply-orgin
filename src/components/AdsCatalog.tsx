@@ -111,6 +111,27 @@ export default function AdsCatalog({ productsList: initialProductsList }: AdsCat
     setOrderSuccess(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
 
+    // Instantly persist into Firestore Orders ledger
+    try {
+      const newOrder = {
+        id: newOrderId,
+        name: details.name || "Unknown Buyer",
+        phone: details.phone || "No phone",
+        address: details.address || "No address",
+        pincode: details.pincode || "000000",
+        productName: details.productName || (activeTabProduct ? activeTabProduct.name : "Unknown Product"),
+        quantity: quantity,
+        totalPrice: total,
+        status: "Pending" as const,
+        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+        isNew: true,
+        createdAt: Date.now()
+      };
+      saveOrderToFirestore(newOrder).catch((err) => console.error("Error saving ads order to Firestore:", err));
+    } catch (err) {
+      console.error("Failed to append placed ads order into admin storage:", err);
+    }
+
     // Try to play success audio chime (C5 -> E5 -> G5 -> C6)
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;

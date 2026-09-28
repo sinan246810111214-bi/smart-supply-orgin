@@ -18,6 +18,11 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
   const [pincode, setPincode] = useState("");
   const [estDate, setEstDate] = useState("");
 
+  const [postOfficeSuggestions, setPostOfficeSuggestions] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [suggestionSource, setSuggestionSource] = useState<"post" | "pincode" | null>(null);
+  const [isAutoFilled, setIsAutoFilled] = useState(false);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -78,6 +83,70 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
       setEstDate("");
     }
   }, [pincode]);
+
+  // Suggestion lookup via India Post Open API
+  useEffect(() => {
+    if (isAutoFilled) {
+      setIsAutoFilled(false);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(() => {
+      // 1. Check Pincode lookup (exactly 6 digits)
+      const cleanPin = pincode.replace(/\D/g, "");
+      if (cleanPin.length === 6) {
+        setLoadingSuggestions(true);
+        setSuggestionSource("pincode");
+        fetch(`https://api.postalpincode.in/pincode/${cleanPin}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data[0] && data[0].Status === "Success" && data[0].PostOffice) {
+              setPostOfficeSuggestions(data[0].PostOffice);
+            } else {
+              setPostOfficeSuggestions([]);
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching pincode info:", err);
+            setPostOfficeSuggestions([]);
+          })
+          .finally(() => setLoadingSuggestions(false));
+        return;
+      }
+
+      // 2. Post Office Name lookup (minimum 3 chars)
+      if (post.trim().length >= 3) {
+        setLoadingSuggestions(true);
+        setSuggestionSource("post");
+        fetch(`https://api.postalpincode.in/postoffice/${post.trim()}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data[0] && data[0].Status === "Success" && data[0].PostOffice) {
+              setPostOfficeSuggestions(data[0].PostOffice.slice(0, 8));
+            } else {
+              setPostOfficeSuggestions([]);
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching post office info:", err);
+            setPostOfficeSuggestions([]);
+          })
+          .finally(() => setLoadingSuggestions(false));
+      } else {
+        setPostOfficeSuggestions([]);
+      }
+    }, 450);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [post, pincode]);
+
+  const handleSelectSuggestion = (office: any) => {
+    setIsAutoFilled(true);
+    setPost(office.Name);
+    setDistrict(office.District);
+    setPincode(office.Pincode);
+    setPostOfficeSuggestions([]);
+  };
 
   // Smart phone formatting that automatically strips +91, 91 or 0 prefix
   const handlePhoneChange = (val: string) => {
@@ -323,7 +392,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
             </div>
 
             {/* Post */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 relative">
               <span className="text-xs font-black text-gray-700 flex items-center gap-1">
                 Post (പോസ്റ്റ്) <span className="text-rose-500">*</span>
               </span>
@@ -336,6 +405,34 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
                   errors.post ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                 }`}
               />
+              {loadingSuggestions && suggestionSource === "post" && (
+                <span className="text-[10px] font-black text-blue-600 animate-pulse mt-0.5 ml-1 flex items-center gap-1">
+                  🔍 Searching post offices...
+                </span>
+              )}
+              {postOfficeSuggestions.length > 0 && suggestionSource === "post" && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border-2 border-blue-200 rounded-2xl max-h-56 overflow-y-auto shadow-2xl z-25 flex flex-col divide-y divide-gray-100 text-xs animate-fade-in">
+                  <div className="bg-blue-50/50 px-3.5 py-2 font-black text-blue-800 text-[10px] uppercase tracking-wider">
+                    📍 Tap to Auto-Fill District & Pincode
+                  </div>
+                  {postOfficeSuggestions.map((office, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(office)}
+                      className="px-3.5 py-3 text-left hover:bg-blue-50/40 focus:bg-blue-50/40 focus:outline-none transition-colors flex items-center justify-between text-gray-900 font-bold cursor-pointer"
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm font-black text-blue-950">{office.Name}</span>
+                        <span className="text-[10px] text-gray-500 font-bold">{office.District} Dist, {office.State}</span>
+                      </div>
+                      <span className="bg-blue-100 text-blue-900 text-[11px] px-2.5 py-1 rounded-lg font-black tracking-wider">
+                        {office.Pincode}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {errors.post && (
                 <p className="text-rose-600 text-[11px] font-bold flex items-center gap-1 mt-0.5">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -367,7 +464,7 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
             </div>
 
             {/* Pincode */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 relative">
               <span className="text-xs font-black text-gray-700 flex items-center gap-1">
                 Pincode (പിൻകോഡ്) <span className="text-rose-500">*</span>
               </span>
@@ -381,6 +478,34 @@ export default function CODForm({ product, onOrderSuccess, formRef }: CODFormPro
                   errors.pincode ? "border-rose-400 bg-rose-50/5" : "border-gray-200"
                 }`}
               />
+              {loadingSuggestions && suggestionSource === "pincode" && (
+                <span className="text-[10px] font-black text-blue-600 animate-pulse mt-0.5 ml-1 flex items-center gap-1">
+                  🔍 Verifying Pincode...
+                </span>
+              )}
+              {postOfficeSuggestions.length > 0 && suggestionSource === "pincode" && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border-2 border-blue-200 rounded-2xl max-h-56 overflow-y-auto shadow-2xl z-25 flex flex-col divide-y divide-gray-100 text-xs animate-fade-in">
+                  <div className="bg-blue-50/50 px-3.5 py-2 font-black text-blue-800 text-[10px] uppercase tracking-wider">
+                    📍 Select Post Office for this Pincode
+                  </div>
+                  {postOfficeSuggestions.map((office, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(office)}
+                      className="px-3.5 py-3 text-left hover:bg-blue-50/40 focus:bg-blue-50/40 focus:outline-none transition-colors flex items-center justify-between text-gray-900 font-bold cursor-pointer"
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm font-black text-blue-950">{office.Name}</span>
+                        <span className="text-[10px] text-gray-500 font-bold">{office.District} Dist, {office.State}</span>
+                      </div>
+                      <span className="bg-blue-100 text-blue-900 text-[11px] px-2.5 py-1 rounded-lg font-black tracking-wider">
+                        {office.Pincode}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
               
               {/* Live Delivery Date Estimate indicator */}
               {estDate && (
